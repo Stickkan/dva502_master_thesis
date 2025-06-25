@@ -1,0 +1,10 @@
+# Define the action goal
+string mission_goal
+---
+# Define the action result
+string mission_result
+---
+# Define the action feedback
+string mission_feedback
+int32 status_code
+int32 command_id
