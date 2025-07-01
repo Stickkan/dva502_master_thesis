@@ -12,7 +12,7 @@ colcon build --packages-select drone_com	#Bygger enbart ett specifikt projekt
 
 #Köra projekt
 #Se till att du först har source-at allt!
-ros2 launch drone_start sensor_node.launch.py 
+ros2 launch drone_start drone_wrapper.launch.py 
 
 #Undersöka topics från terminalfönstret.
 #Se till att du först har source-at allt!

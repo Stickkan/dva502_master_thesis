@@ -1,0 +1,25 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/TaskSpecification.msg
+// generated code does not contain a copyright notice
+
+
+module custom_drone_interfaces {
+  module msg {
+    typedef double double__5[5];
+    @verbatim (language="comment", text=
+      "Future proof task handling. " "\n"
+      "Current flags:" "\n"
+      "1   = TAKE_OFF" "\n"
+      "2   = LANDING" "\n"
+      "3   = CAMERA_IMAGE   The UAV is instructed to take image(s)." "\n"
+      "4   = VIDEO_START_CAPTURE  Video capture starts." "\n"
+      "5   = VIDEO_STOP_CAPTURE Video capture ends." "\n"
+      "" "\n"
+      "255 = TO_TASK               Nothing to do")
+    struct TaskSpecification {
+      int16 flag;
+
+      double__5 settings;
+    };
+  };
+};

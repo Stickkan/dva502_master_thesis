@@ -1,0 +1,28 @@
+// generated from rosidl_adapter/resource/action.idl.em
+// with input from custom_drone_interfaces/action/MissionExecutor.action
+// generated code does not contain a copyright notice
+
+
+module custom_drone_interfaces {
+  module action {
+    @verbatim (language="comment", text=
+      "Define the action goal")
+    struct MissionExecutor_Goal {
+      string mission_goal;
+    };
+    @verbatim (language="comment", text=
+      "Define the action result")
+    struct MissionExecutor_Result {
+      string mission_result;
+    };
+    @verbatim (language="comment", text=
+      "Define the action feedback")
+    struct MissionExecutor_Feedback {
+      string mission_feedback;
+
+      int32 status_code;
+
+      int32 command_id;
+    };
+  };
+};

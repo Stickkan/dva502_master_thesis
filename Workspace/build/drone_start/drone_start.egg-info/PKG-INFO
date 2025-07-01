@@ -1,0 +1,18 @@
+Metadata-Version: 2.1
+Name: drone-start
+Version: 0.0.0
+Summary: Package to start all the drone nodes
+Home-page: UNKNOWN
+Author: Lennie Carlen Eriksson
+Author-email: lennie.carlen.eriksson@mdu.se
+Maintainer: Lennie Carlen Eriksson
+Maintainer-email: lennie.carlen.eriksson@mdu.se
+License: TODO: License declaration
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License  # Adjust based on your actual license
+Classifier: Operating System :: OS Independent
+Provides-Extra: testing
+
+UNKNOWN
+

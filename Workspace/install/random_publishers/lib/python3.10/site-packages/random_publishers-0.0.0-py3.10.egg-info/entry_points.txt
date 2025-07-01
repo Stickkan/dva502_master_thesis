@@ -1,0 +1,3 @@
+[console_scripts]
+agentData_pub = random_publishers.agentData_pub:main
+
