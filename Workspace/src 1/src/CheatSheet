@@ -24,3 +24,6 @@ ros2 topic info <topic_name>			#info about type, subscribers and publishers to a
 ros2 interface show <msg_type>			#Find msg_type from topic info above. It shows the structure of data the type expects
 ros2 topic pub <topic_name> <msg_type> '<args>'	#Publish data to a topic directly from terminal		
 ros2 topic hz <topic_name>			#Shows the datarate of data that is published to topic_name
+
+
+test
