@@ -370,7 +370,7 @@ custom_drone_interfaces_BINARY_DIR:STATIC=/home/viktor/dva502_master_thesis/Work
 custom_drone_interfaces_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
-custom_drone_interfaces_SOURCE_DIR:STATIC=/home/viktor/dva502_master_thesis/Workspace/src 1/src/custom_drone_interfaces
+custom_drone_interfaces_SOURCE_DIR:STATIC=/home/viktor/dva502_master_thesis/Workspace/src/custom_drone_interfaces
 
 //Dependencies for the target
 custom_drone_interfaces__rosidl_generator_c_LIB_DEPENDS:STATIC=general;std_msgs::std_msgs__rosidl_generator_c;general;builtin_interfaces::builtin_interfaces__rosidl_generator_c;general;action_msgs::action_msgs__rosidl_generator_c;general;unique_identifier_msgs::unique_identifier_msgs__rosidl_generator_c;general;geometry_msgs::geometry_msgs__rosidl_generator_c;general;rosidl_runtime_c::rosidl_runtime_c;general;rcutils::rcutils;
@@ -644,7 +644,7 @@ CMAKE_HAVE_LIBC_PTHREAD:INTERNAL=1
 CMAKE_HAVE_PTHREAD_H:INTERNAL=1
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/home/viktor/dva502_master_thesis/Workspace/src 1/src/custom_drone_interfaces
+CMAKE_HOME_DIRECTORY:INTERNAL=/home/viktor/dva502_master_thesis/Workspace/src/custom_drone_interfaces
 //Install .so files without execute permission.
 CMAKE_INSTALL_SO_NO_EXE:INTERNAL=1
 //ADVANCED property for variable: CMAKE_LINKER

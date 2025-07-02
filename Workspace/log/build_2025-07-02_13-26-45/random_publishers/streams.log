@@ -1,0 +1,37 @@
+[0.544s] Invoking command in '/home/viktor/dva502_master_thesis/Workspace/src/random_publishers': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/random_publishers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/random_publishers build --build-base /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build install --record /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/install.log --single-version-externally-managed install_data
+[0.752s] running egg_info
+[0.752s] creating ../../build/random_publishers/random_publishers.egg-info
+[0.753s] writing ../../build/random_publishers/random_publishers.egg-info/PKG-INFO
+[0.753s] writing dependency_links to ../../build/random_publishers/random_publishers.egg-info/dependency_links.txt
+[0.753s] writing entry points to ../../build/random_publishers/random_publishers.egg-info/entry_points.txt
+[0.753s] writing requirements to ../../build/random_publishers/random_publishers.egg-info/requires.txt
+[0.753s] writing top-level names to ../../build/random_publishers/random_publishers.egg-info/top_level.txt
+[0.753s] writing manifest file '../../build/random_publishers/random_publishers.egg-info/SOURCES.txt'
+[0.754s] reading manifest file '../../build/random_publishers/random_publishers.egg-info/SOURCES.txt'
+[0.755s] writing manifest file '../../build/random_publishers/random_publishers.egg-info/SOURCES.txt'
+[0.755s] running build
+[0.755s] running build_py
+[0.755s] creating /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build
+[0.755s] creating /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib
+[0.756s] creating /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib/random_publishers
+[0.756s] copying random_publishers/__init__.py -> /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib/random_publishers
+[0.756s] copying random_publishers/agentData_pub.py -> /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib/random_publishers
+[0.756s] running install
+[0.756s] running install_lib
+[0.757s] creating /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers
+[0.757s] copying /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib/random_publishers/__init__.py -> /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers
+[0.757s] copying /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build/lib/random_publishers/agentData_pub.py -> /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers
+[0.757s] byte-compiling /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers/__init__.py to __init__.cpython-310.pyc
+[0.757s] byte-compiling /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers/agentData_pub.py to agentData_pub.cpython-310.pyc
+[0.758s] running install_data
+[0.758s] creating /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/ament_index
+[0.758s] creating /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/ament_index/resource_index
+[0.758s] creating /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/ament_index/resource_index/packages
+[0.758s] copying resource/random_publishers -> /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/ament_index/resource_index/packages
+[0.758s] copying package.xml -> /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers
+[0.758s] running install_egg_info
+[0.760s] Copying ../../build/random_publishers/random_publishers.egg-info to /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages/random_publishers-0.0.0-py3.10.egg-info
+[0.760s] running install_scripts
+[0.778s] Installing agentData_pub script to /home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/random_publishers
+[0.778s] writing list of installed files to '/home/viktor/dva502_master_thesis/Workspace/build/random_publishers/install.log'
+[0.797s] Invoked command in '/home/viktor/dva502_master_thesis/Workspace/src/random_publishers' returned '0': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/random_publishers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/random_publishers build --build-base /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build install --record /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/install.log --single-version-externally-managed install_data
