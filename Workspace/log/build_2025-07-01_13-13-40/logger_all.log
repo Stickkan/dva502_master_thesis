@@ -1,0 +1,336 @@
+[0.097s] DEBUG:colcon:Command line arguments: ['/usr/bin/colcon', 'build']
+[0.098s] DEBUG:colcon:Parsed command line arguments: Namespace(log_base=None, log_level=None, verb_name='build', build_base='build', install_base='install', merge_install=False, symlink_install=False, test_result_base=None, continue_on_error=False, executor='parallel', parallel_workers=12, event_handlers=None, ignore_user_meta=False, metas=['./colcon.meta'], base_paths=['.'], packages_ignore=None, packages_ignore_regex=None, paths=None, packages_up_to=None, packages_up_to_regex=None, packages_above=None, packages_above_and_dependencies=None, packages_above_depth=None, packages_select_by_dep=None, packages_skip_by_dep=None, packages_skip_up_to=None, packages_select_build_failed=False, packages_skip_build_finished=False, packages_select_test_failures=False, packages_skip_test_passed=False, packages_select=None, packages_skip=None, packages_select_regex=None, packages_skip_regex=None, packages_start=None, packages_end=None, allow_overriding=[], cmake_args=None, cmake_target=None, cmake_target_skip_unavailable=False, cmake_clean_cache=False, cmake_clean_first=False, cmake_force_configure=False, ament_cmake_args=None, catkin_cmake_args=None, catkin_skip_building_tests=False, verb_parser=<colcon_defaults.argument_parser.defaults.DefaultArgumentsDecorator object at 0x7711d8f681f0>, verb_extension=<colcon_core.verb.build.BuildVerb object at 0x7711d905d540>, main=<bound method BuildVerb.main of <colcon_core.verb.build.BuildVerb object at 0x7711d905d540>>)
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) check parameters
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) check parameters
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) check parameters
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) check parameters
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(colcon_meta) discover
+[0.250s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) discover
+[0.250s] INFO:colcon.colcon_core.package_discovery:Crawling recursively for packages in '/home/viktor/dva502_master_thesis/Workspace'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ignore', 'ignore_ament_install']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ignore_ament_install'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_pkg']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_pkg'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['colcon_meta']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'colcon_meta'
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['ros']
+[0.250s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'ros'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['cmake', 'python']
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'cmake'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extensions ['python_setup_py']
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(.) by extension 'python_setup_py'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extensions ['ignore', 'ignore_ament_install']
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(build) by extension 'ignore'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(build) ignored
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['ignore', 'ignore_ament_install']
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'ignore'
+[0.261s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'ignore_ament_install'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['colcon_pkg']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'colcon_pkg'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['colcon_meta']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'colcon_meta'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['ros']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'ros'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['cmake', 'python']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'cmake'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'python'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extensions ['python_setup_py']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(config_files) by extension 'python_setup_py'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extensions ['ignore', 'ignore_ament_install']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(install) by extension 'ignore'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(install) ignored
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extensions ['ignore', 'ignore_ament_install']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(log) by extension 'ignore'
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(log) ignored
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['ignore', 'ignore_ament_install']
+[0.262s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'ignore'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'ignore_ament_install'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['colcon_pkg']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'colcon_pkg'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['colcon_meta']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'colcon_meta'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['ros']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'ros'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['cmake', 'python']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'cmake'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'python'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extensions ['python_setup_py']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1) by extension 'python_setup_py'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['ignore', 'ignore_ament_install']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'ignore'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'ignore_ament_install'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['colcon_pkg']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'colcon_pkg'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['colcon_meta']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'colcon_meta'
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['ros']
+[0.263s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'ros'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['cmake', 'python']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'cmake'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'python'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extensions ['python_setup_py']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src) by extension 'python_setup_py'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extensions ['ignore', 'ignore_ament_install']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extension 'ignore'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extension 'ignore_ament_install'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extensions ['colcon_pkg']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extension 'colcon_pkg'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extensions ['colcon_meta']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extension 'colcon_meta'
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extensions ['ros']
+[0.264s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/custom_drone_interfaces) by extension 'ros'
+[0.267s] DEBUG:colcon.colcon_core.package_identification:Package 'src 1/src/custom_drone_interfaces' with type 'ros.ament_cmake' and name 'custom_drone_interfaces'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extensions ['ignore', 'ignore_ament_install']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extension 'ignore'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extension 'ignore_ament_install'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extensions ['colcon_pkg']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extension 'colcon_pkg'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extensions ['colcon_meta']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extension 'colcon_meta'
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extensions ['ros']
+[0.267s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_com) by extension 'ros'
+[0.268s] DEBUG:colcon.colcon_core.package_identification:Package 'src 1/src/drone_com' with type 'ros.ament_python' and name 'drone_com'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extensions ['ignore', 'ignore_ament_install']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extension 'ignore'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extension 'ignore_ament_install'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extensions ['colcon_pkg']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extension 'colcon_pkg'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extensions ['colcon_meta']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extension 'colcon_meta'
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extensions ['ros']
+[0.268s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/drone_start) by extension 'ros'
+[0.269s] DEBUG:colcon.colcon_core.package_identification:Package 'src 1/src/drone_start' with type 'ros.ament_python' and name 'drone_start'
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extensions ['ignore', 'ignore_ament_install']
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extension 'ignore'
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extension 'ignore_ament_install'
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extensions ['colcon_pkg']
+[0.269s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extension 'colcon_pkg'
+[0.270s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extensions ['colcon_meta']
+[0.270s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extension 'colcon_meta'
+[0.270s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extensions ['ros']
+[0.270s] Level 1:colcon.colcon_core.package_identification:_identify(src 1/src/random_publishers) by extension 'ros'
+[0.270s] DEBUG:colcon.colcon_core.package_identification:Package 'src 1/src/random_publishers' with type 'ros.ament_python' and name 'random_publishers'
+[0.270s] Level 1:colcon.colcon_core.package_discovery:discover_packages(recursive) using defaults
+[0.270s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) discover
+[0.270s] Level 1:colcon.colcon_core.package_discovery:discover_packages(ignore) using defaults
+[0.270s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) discover
+[0.270s] Level 1:colcon.colcon_core.package_discovery:discover_packages(path) using defaults
+[0.309s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) check parameters
+[0.310s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) discover
+[0.311s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 4 installed packages in /home/viktor/dva502_master_thesis/Workspace/install
+[0.312s] DEBUG:colcon.colcon_installed_package_information.package_discovery:Found 271 installed packages in /opt/ros/humble
+[0.314s] Level 1:colcon.colcon_core.package_discovery:discover_packages(prefix_path) using defaults
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_args' from command line to 'None'
+[0.348s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_target' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_clean_cache' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_clean_first' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'cmake_force_configure' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'ament_cmake_args' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'catkin_cmake_args' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'custom_drone_interfaces' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.349s] DEBUG:colcon.colcon_core.verb:Building package 'custom_drone_interfaces' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces', 'merge_install': False, 'path': '/home/viktor/dva502_master_thesis/Workspace/src 1/src/custom_drone_interfaces', 'symlink_install': False, 'test_result_base': None}
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_args' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_target' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_clean_cache' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_clean_first' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'cmake_force_configure' from command line to 'False'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'ament_cmake_args' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'catkin_cmake_args' from command line to 'None'
+[0.349s] Level 5:colcon.colcon_core.verb:set package 'random_publishers' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.349s] DEBUG:colcon.colcon_core.verb:Building package 'random_publishers' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/viktor/dva502_master_thesis/Workspace/build/random_publishers', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers', 'merge_install': False, 'path': '/home/viktor/dva502_master_thesis/Workspace/src 1/src/random_publishers', 'symlink_install': False, 'test_result_base': None}
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_target' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_clean_cache' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_clean_first' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'cmake_force_configure' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'ament_cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'catkin_cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_com' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.350s] DEBUG:colcon.colcon_core.verb:Building package 'drone_com' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/viktor/dva502_master_thesis/Workspace/build/drone_com', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/viktor/dva502_master_thesis/Workspace/install/drone_com', 'merge_install': False, 'path': '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_com', 'symlink_install': False, 'test_result_base': None}
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_target' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_target_skip_unavailable' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_clean_cache' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_clean_first' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'cmake_force_configure' from command line to 'False'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'ament_cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'catkin_cmake_args' from command line to 'None'
+[0.350s] Level 5:colcon.colcon_core.verb:set package 'drone_start' build argument 'catkin_skip_building_tests' from command line to 'False'
+[0.350s] DEBUG:colcon.colcon_core.verb:Building package 'drone_start' with the following arguments: {'ament_cmake_args': None, 'build_base': '/home/viktor/dva502_master_thesis/Workspace/build/drone_start', 'catkin_cmake_args': None, 'catkin_skip_building_tests': False, 'cmake_args': None, 'cmake_clean_cache': False, 'cmake_clean_first': False, 'cmake_force_configure': False, 'cmake_target': None, 'cmake_target_skip_unavailable': False, 'install_base': '/home/viktor/dva502_master_thesis/Workspace/install/drone_start', 'merge_install': False, 'path': '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_start', 'symlink_install': False, 'test_result_base': None}
+[0.351s] INFO:colcon.colcon_core.executor:Executing jobs using 'parallel' executor
+[0.351s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete
+[0.352s] INFO:colcon.colcon_ros.task.ament_cmake.build:Building ROS package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/custom_drone_interfaces' with build type 'ament_cmake'
+[0.352s] INFO:colcon.colcon_cmake.task.cmake.build:Building CMake package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/custom_drone_interfaces'
+[0.354s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_core.shell.bat': Not used on non-Windows systems
+[0.354s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.354s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.357s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/random_publishers' with build type 'ament_python'
+[0.357s] Level 1:colcon.colcon_core.shell:create_environment_hook('random_publishers', 'ament_prefix_path')
+[0.357s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/ament_prefix_path.ps1'
+[0.358s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/ament_prefix_path.dsv'
+[0.358s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/ament_prefix_path.sh'
+[0.359s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.359s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.365s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/opt/ros/humble /usr/bin/cmake --build /home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces -- -j12 -l12
+[0.596s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/random_publishers'
+[0.596s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[0.596s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[0.886s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/random_publishers': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/random_publishers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/random_publishers build --build-base /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build install --record /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/install.log --single-version-externally-managed install_data
+[1.143s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/random_publishers' returned '0': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/random_publishers/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/random_publishers build --build-base /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/build install --record /home/viktor/dva502_master_thesis/Workspace/build/random_publishers/install.log --single-version-externally-managed install_data
+[1.145s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers' for CMake module files
+[1.145s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers' for CMake config files
+[1.146s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib'
+[1.146s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/bin'
+[1.146s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/pkgconfig/random_publishers.pc'
+[1.146s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages'
+[1.146s] Level 1:colcon.colcon_core.shell:create_environment_hook('random_publishers', 'pythonpath')
+[1.146s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/pythonpath.ps1'
+[1.147s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/pythonpath.dsv'
+[1.147s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/hook/pythonpath.sh'
+[1.148s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/bin'
+[1.148s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(random_publishers)
+[1.148s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/package.ps1'
+[1.149s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/package.dsv'
+[1.149s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/package.sh'
+[1.150s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/package.bash'
+[1.151s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/random_publishers/package.zsh'
+[1.151s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/share/colcon-core/packages/random_publishers)
+[6.549s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/opt/ros/humble /usr/bin/cmake --build /home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces -- -j12 -l12
+[6.557s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/opt/ros/humble /usr/bin/cmake --install /home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces
+[6.659s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(custom_drone_interfaces)
+[6.660s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces' for CMake module files
+[6.660s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/opt/ros/humble /usr/bin/cmake --install /home/viktor/dva502_master_thesis/Workspace/build/custom_drone_interfaces
+[6.661s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces' for CMake config files
+[6.661s] Level 1:colcon.colcon_core.shell:create_environment_hook('custom_drone_interfaces', 'cmake_prefix_path')
+[6.661s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.ps1'
+[6.661s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.dsv'
+[6.662s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.sh'
+[6.662s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib'
+[6.662s] Level 1:colcon.colcon_core.shell:create_environment_hook('custom_drone_interfaces', 'ld_library_path_lib')
+[6.662s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.ps1'
+[6.663s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.dsv'
+[6.663s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.sh'
+[6.663s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/bin'
+[6.663s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib/pkgconfig/custom_drone_interfaces.pc'
+[6.664s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib/python3.10/site-packages'
+[6.664s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/bin'
+[6.664s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.ps1'
+[6.664s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.dsv'
+[6.665s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.sh'
+[6.665s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.bash'
+[6.666s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.zsh'
+[6.666s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/colcon-core/packages/custom_drone_interfaces)
+[6.666s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(custom_drone_interfaces)
+[6.667s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces' for CMake module files
+[6.667s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces' for CMake config files
+[6.667s] Level 1:colcon.colcon_core.shell:create_environment_hook('custom_drone_interfaces', 'cmake_prefix_path')
+[6.667s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.ps1'
+[6.668s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.dsv'
+[6.668s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/cmake_prefix_path.sh'
+[6.669s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib'
+[6.669s] Level 1:colcon.colcon_core.shell:create_environment_hook('custom_drone_interfaces', 'ld_library_path_lib')
+[6.669s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.ps1'
+[6.669s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.dsv'
+[6.669s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/hook/ld_library_path_lib.sh'
+[6.670s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/bin'
+[6.670s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib/pkgconfig/custom_drone_interfaces.pc'
+[6.670s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/lib/python3.10/site-packages'
+[6.670s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/bin'
+[6.670s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.ps1'
+[6.671s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.dsv'
+[6.672s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.sh'
+[6.672s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.bash'
+[6.672s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/custom_drone_interfaces/package.zsh'
+[6.673s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/share/colcon-core/packages/custom_drone_interfaces)
+[6.673s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_com' with build type 'ament_python'
+[6.673s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_com', 'ament_prefix_path')
+[6.673s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/ament_prefix_path.ps1'
+[6.674s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/ament_prefix_path.dsv'
+[6.674s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/ament_prefix_path.sh'
+[6.675s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[6.675s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[6.900s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_com'
+[6.900s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[6.900s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[7.185s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_com': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/drone_com/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/drone_com build --build-base /home/viktor/dva502_master_thesis/Workspace/build/drone_com/build install --record /home/viktor/dva502_master_thesis/Workspace/build/drone_com/install.log --single-version-externally-managed install_data
+[7.440s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com' for CMake module files
+[7.440s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_com' returned '0': PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/drone_com/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/drone_com build --build-base /home/viktor/dva502_master_thesis/Workspace/build/drone_com/build install --record /home/viktor/dva502_master_thesis/Workspace/build/drone_com/install.log --single-version-externally-managed install_data
+[7.440s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com' for CMake config files
+[7.441s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib'
+[7.441s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/bin'
+[7.441s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/pkgconfig/drone_com.pc'
+[7.441s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages'
+[7.441s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_com', 'pythonpath')
+[7.441s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/pythonpath.ps1'
+[7.442s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/pythonpath.dsv'
+[7.442s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/hook/pythonpath.sh'
+[7.443s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/bin'
+[7.443s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(drone_com)
+[7.443s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/package.ps1'
+[7.443s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/package.dsv'
+[7.444s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/package.sh'
+[7.444s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/package.bash'
+[7.445s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/drone_com/package.zsh'
+[7.445s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/viktor/dva502_master_thesis/Workspace/install/drone_com/share/colcon-core/packages/drone_com)
+[7.445s] INFO:colcon.colcon_ros.task.ament_python.build:Building ROS package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_start' with build type 'ament_python'
+[7.445s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_start', 'ament_prefix_path')
+[7.446s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/ament_prefix_path.ps1'
+[7.446s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/ament_prefix_path.dsv'
+[7.446s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/ament_prefix_path.sh'
+[7.447s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[7.447s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[7.454s] WARNING:colcon.colcon_ros.task.ament_python.build:Package 'drone_start' doesn't explicitly install a marker in the package index (colcon-ros currently does it implicitly but that fallback will be removed in the future)
+[7.454s] INFO:colcon.colcon_core.task.python.build:Building Python package in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_start'
+[7.454s] INFO:colcon.colcon_core.shell:Skip shell extension 'powershell' for command environment: Not usable outside of PowerShell
+[7.454s] DEBUG:colcon.colcon_core.shell:Skip shell extension 'dsv' for command environment
+[7.750s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoking command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_start': AMENT_PREFIX_PATH=/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces:/opt/ros/humble PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/drone_start/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/drone_start build --build-base /home/viktor/dva502_master_thesis/Workspace/build/drone_start/build install --record /home/viktor/dva502_master_thesis/Workspace/build/drone_start/install.log --single-version-externally-managed install_data
+[8.010s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start' for CMake module files
+[8.011s] DEBUG:colcon.colcon_core.event_handler.log_command:Invoked command in '/home/viktor/dva502_master_thesis/Workspace/src 1/src/drone_start' returned '0': AMENT_PREFIX_PATH=/home/viktor/dva502_master_thesis/Workspace/install/drone_com:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers:/home/viktor/dva502_master_thesis/Workspace/install/drone_start:/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces:/opt/ros/humble PYTHONPATH=/home/viktor/dva502_master_thesis/Workspace/build/drone_start/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/random_publishers/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages:/home/viktor/dva502_master_thesis/Workspace/install/custom_drone_interfaces/local/lib/python3.10/dist-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../build/drone_start build --build-base /home/viktor/dva502_master_thesis/Workspace/build/drone_start/build install --record /home/viktor/dva502_master_thesis/Workspace/build/drone_start/install.log --single-version-externally-managed install_data
+[8.011s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start' for CMake config files
+[8.011s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib'
+[8.012s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/bin'
+[8.012s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_start', 'path')
+[8.012s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/path.ps1'
+[8.012s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/path.dsv'
+[8.013s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/path.sh'
+[8.013s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/pkgconfig/drone_start.pc'
+[8.013s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages'
+[8.013s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_start', 'pythonpath')
+[8.013s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonpath.ps1'
+[8.014s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonpath.dsv'
+[8.014s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonpath.sh'
+[8.015s] Level 1:colcon.colcon_core.environment:checking '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/bin'
+[8.015s] Level 1:colcon.colcon_core.shell:create_environment_hook('drone_start', 'pythonscriptspath')
+[8.015s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonscriptspath.ps1'
+[8.015s] INFO:colcon.colcon_core.shell:Creating environment descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonscriptspath.dsv'
+[8.016s] INFO:colcon.colcon_core.shell:Creating environment hook '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/hook/pythonscriptspath.sh'
+[8.016s] Level 1:colcon.colcon_core.environment:create_environment_scripts_only(drone_start)
+[8.016s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/package.ps1'
+[8.017s] INFO:colcon.colcon_core.shell:Creating package descriptor '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/package.dsv'
+[8.017s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/package.sh'
+[8.018s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/package.bash'
+[8.018s] INFO:colcon.colcon_core.shell:Creating package script '/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/package.zsh'
+[8.018s] Level 1:colcon.colcon_core.environment:create_file_with_runtime_dependencies(/home/viktor/dva502_master_thesis/Workspace/install/drone_start/share/colcon-core/packages/drone_start)
+[8.019s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:closing loop
+[8.019s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:loop closed
+[8.019s] DEBUG:colcon.colcon_parallel_executor.executor.parallel:run_until_complete finished with '0'
+[8.019s] DEBUG:colcon.colcon_core.event_reactor:joining thread
+[8.023s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.terminal_notifier': Not used on non-Darwin systems
+[8.023s] INFO:colcon.colcon_core.plugin_system:Skipping extension 'colcon_notification.desktop_notification.win32': Not used on non-Windows systems
+[8.024s] INFO:colcon.colcon_notification.desktop_notification:Sending desktop notification using 'notify2'
+[8.036s] DEBUG:colcon.colcon_core.event_reactor:joined thread
+[8.036s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/viktor/dva502_master_thesis/Workspace/install/local_setup.ps1'
+[8.037s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/viktor/dva502_master_thesis/Workspace/install/_local_setup_util_ps1.py'
+[8.039s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/viktor/dva502_master_thesis/Workspace/install/setup.ps1'
+[8.040s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/viktor/dva502_master_thesis/Workspace/install/local_setup.sh'
+[8.040s] INFO:colcon.colcon_core.shell:Creating prefix util module '/home/viktor/dva502_master_thesis/Workspace/install/_local_setup_util_sh.py'
+[8.041s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/viktor/dva502_master_thesis/Workspace/install/setup.sh'
+[8.042s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/viktor/dva502_master_thesis/Workspace/install/local_setup.bash'
+[8.042s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/viktor/dva502_master_thesis/Workspace/install/setup.bash'
+[8.043s] INFO:colcon.colcon_core.shell:Creating prefix script '/home/viktor/dva502_master_thesis/Workspace/install/local_setup.zsh'
+[8.044s] INFO:colcon.colcon_core.shell:Creating prefix chain script '/home/viktor/dva502_master_thesis/Workspace/install/setup.zsh'
