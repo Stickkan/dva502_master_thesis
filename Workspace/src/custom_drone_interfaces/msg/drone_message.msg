@@ -35,3 +35,5 @@ string protocol
 # The communication interface used (e.g., "WIFI_5GHZ", "BT")
 string interface
 
+# The time stamp
+float time_stamp
