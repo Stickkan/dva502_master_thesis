@@ -1,3 +1,0 @@
-[console_scripts]
-mission_control = mw_package.mission_control:main
-

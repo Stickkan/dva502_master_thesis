@@ -1,3 +1,0 @@
-[console_scripts]
-drone2drone = drone_com.drone2drone:main
-

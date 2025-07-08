@@ -1,4 +1,0 @@
-# generated from rosidl_cmake/cmake/rosidl_cmake-extras.cmake.in
-
-set(custom_drone_interfaces_IDL_FILES "msg/MissionFeedback.idl;msg/MissionGoal.idl;msg/MissionResult.idl;msg/MissionCommand.idl;msg/AgentData.idl;msg/AgentsList.idl;msg/SensorDataCollection.idl;msg/StatusDataCollection.idl;msg/ObjectProximityData.idl;msg/Waypoint.idl;msg/SubWaypoint.idl;msg/Path3D.idl;msg/TaskSpecification.idl;msg/SetPoint.idl;srv/ComputePath.idl;action/MissionExecutor.idl;action/Tracker.idl")
-set(custom_drone_interfaces_INTERFACE_FILES "msg/MissionFeedback.msg;msg/MissionGoal.msg;msg/MissionResult.msg;msg/MissionCommand.msg;msg/AgentData.msg;msg/AgentsList.msg;msg/SensorDataCollection.msg;msg/StatusDataCollection.msg;msg/ObjectProximityData.msg;msg/Waypoint.msg;msg/SubWaypoint.msg;msg/Path3D.msg;msg/TaskSpecification.msg;msg/SetPoint.msg;srv/ComputePath.srv;srv/ComputePath_Request.msg;srv/ComputePath_Response.msg;action/MissionExecutor.action;action/Tracker.action")
