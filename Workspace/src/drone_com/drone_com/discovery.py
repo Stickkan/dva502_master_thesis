@@ -106,5 +106,3 @@ class Discovery:
                 continue # Normal timeout, just loop again
             except Exception as e:
                 self._node.get_logger().error(f"Error listening for peers: {e}")
-
-
