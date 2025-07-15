@@ -36,6 +36,7 @@ class AdhocNode(Node):
         self.velocity = Vector3(x=0.1, y=0.2, z=0.3) # Simulated velocity
         self.energy_level = 99.5
         self.package_number = 0
+        self.time = time
 
         # --- Initialize Modules ---
         self.trust_manager = TrustManager(self)
@@ -101,6 +102,7 @@ class AdhocNode(Node):
             "position": {"x": self.position.x, "y": self.position.y, "z": self.position.z},
             "velocity": {"x": self.velocity.x, "y": self.velocity.y, "z": self.velocity.z},
             "energy_level": self.energy_level,
+            "time": self.time,
             "connected_drones": self.connection_manager.get_connected_peers(),
             "protocol": "STATUS_BROADCAST",
             "interface": "WIFI_5GHZ" # Simulated
