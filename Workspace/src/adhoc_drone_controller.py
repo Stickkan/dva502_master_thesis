@@ -60,6 +60,7 @@ class Discovery:
         commands = [
             ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],
             ['sudo', 'ip', 'link', 'set', iface, 'down'],
+            ['sudo', 'systemctl', 'stop', 'NetworkManager'],
             ['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'],
             ['sudo', 'iwconfig', iface, 'essid', ssid],
             ['sudo', 'iwconfig', iface, 'channel', '6'],
@@ -86,6 +87,7 @@ class Discovery:
             self._run_command(['sudo', 'nmcli', 'con', 'up', 'id', self._original_connection])
         else:
             logger.warning("No known previous connection to restore.")
+        self._run_command(['sudo', 'systemctl', 'start', 'NetworkManager'])
 
     def start_threads(self):
         """Starts the broadcast and listen threads."""
