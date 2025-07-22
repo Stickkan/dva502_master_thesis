@@ -10,7 +10,7 @@ import argparse
 from collections import deque
 
 # --- Global Configuration ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("DroneController")
 
 # --- Discovery Class (Revised) ---
@@ -121,11 +121,19 @@ class Discovery:
     def _broadcast_presence(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        ip_address = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
-        message = json.dumps({"id": self._drone_id, "ip": ip_address})
+
+        # Get the drone's own IP for the ad-hoc network
+        own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+
+        # ADD THIS LINE: Explicitly bind to the ad-hoc IP. Port 0 means "pick any free port".
+        # This tells the OS exactly which network interface to use.
+        sock.bind((own_ip, 0))
+
+        message = json.dumps({"id": self._drone_id, "ip": own_ip})
         while self._running:
             try:
                 sock.sendto(message.encode(), (self._broadcast_ip, self._port))
+                logger.debug(f"Broadcasting presence: {message}")
             except Exception as e:
                 logger.error(f"Broadcast error: {e}")
             time.sleep(5)
