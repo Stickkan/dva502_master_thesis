@@ -182,11 +182,11 @@ class Discovery:
 
 # --- Connection Manager Class ---
 class ConnectionManager:
-    def __init__(self, drone_id, on_message_received_callback):
+    def __init__(self, drone_id, on_message_received_callback, tcp_port, udp_port):
         self._drone_id = drone_id
         self.on_message_received = on_message_received_callback
-        self._tcp_port = 20000
-        self._udp_port = 20001
+        self._tcp_port = tcp_port
+        self._udp_port = udp_port
         self._running = True
         self._threads = []
         self._clients = {} 
@@ -363,7 +363,7 @@ class ConnectionManager:
 
 # --- Main Controller Class ---
 class DroneController:
-    def __init__(self, drone_id, interface, ssid):
+    def __init__(self, drone_id, interface, ssid, tcp_port, udp_port):
         self.drone_id = drone_id
         self.discovered_peers = {}
         self.tested_peers = set()
@@ -375,8 +375,7 @@ class DroneController:
         self.discovery.adhoc_config["ssid"] = ssid
         self.discovery.on_peer_discovered = self._handle_peer_discovery
 
-        self.connection_manager = ConnectionManager(self.drone_id, self._handle_message_received)
-
+        self.connection_manager = ConnectionManager(self.drone_id, self._handle_message_received, tcp_port, udp_port)
     def start(self):
         logger.info(f"--- Starting Drone Controller for {self.drone_id} ---")
         
@@ -460,6 +459,13 @@ class DroneController:
             
     def _handle_message_received(self, message):
         sender = message.get('drone_id', 'Unknown')
+
+        #--- ADD THIS CHECK ---
+        if sender == self.drone_id:
+            logger.debug(f"Ignoring own message: {json.dumps(message)}")
+            return # Exit the function early
+        # --- END OF CHECK ---
+
         protocol = message.get('protocol', 'N/A')
         logger.info(f"RECEIVED from {sender} via {protocol}: {json.dumps(message)}")
 
@@ -491,10 +497,12 @@ def main():
     parser.add_argument('--drone-id', required=True, help='Unique ID for this drone (e.g., drone_1)')
     parser.add_argument('--interface', default='wlo1', help='Wireless interface for ad-hoc mode (e.g., wlan0)')
     parser.add_argument('--ssid', default='drone-swarm-net', help='Ad-hoc network SSID')
+    parser.add_argument('--tcp-port', type=int, required=True, help='TCP port for the connection manager')
+    parser.add_argument('--udp-port', type=int, required=True, help='UDP port for the connection manager')
     args = parser.parse_args()
 
-    controller = DroneController(args.drone_id, args.interface, args.ssid)
-    
+    controller = DroneController(args.drone_id, args.interface, args.ssid, args.tcp_port, args.udp_port)
+
     try:
         if controller.start():
             while True: 
