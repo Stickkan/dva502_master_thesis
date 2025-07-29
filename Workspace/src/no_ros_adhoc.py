@@ -1,4 +1,4 @@
-# enhanced_standalone_controller_final_v4.py
+# enhanced_standalone_controller_final_v5.py
 
 import socket
 import threading
@@ -188,12 +188,13 @@ class ConnectionManager:
         self.on_message_received = on_message_received_callback
         self._tcp_port = tcp_port
         self._udp_port = udp_port
-        self._discovered_peers = discovered_peers_ref
+        self._discovered_peers = discovered_peers_ref # Reference to controller's dict
         self._running = True
         self._threads = []
         self._clients = {}
         self._peers = {}
         self.message_queue = deque()
+        self._lock = threading.Lock() # The new lock
 
     def start(self):
         logger.info(f"Starting connection manager for {self._drone_id}")
@@ -211,9 +212,10 @@ class ConnectionManager:
         if not self._running: return
         logger.info("Stopping connection manager...")
         self._running = False
-        for peer_id, client_socket in list(self._clients.items()):
-            try: client_socket.close()
-            except Exception: pass
+        with self._lock:
+            for peer_id, client_socket in list(self._clients.items()):
+                try: client_socket.close()
+                except Exception: pass
         
         try:
             socket.create_connection(('127.0.0.1', self._tcp_port), timeout=0.5).close()
@@ -227,66 +229,73 @@ class ConnectionManager:
         logger.info("Connection manager stopped.")
     
     def get_connected_peers(self):
-        return list(self._clients.keys())
+        with self._lock:
+            return list(self._clients.keys())
     
     def broadcast_message(self, message_dict):
-        if not self._peers:
+        with self._lock:
+            # Get a consistent copy of peers to broadcast to
+            peers_to_broadcast = list(self._peers.items())
+
+        if not peers_to_broadcast:
             logger.debug("Broadcast requested, but no peers are registered.")
             return
         
-        logger.info(f"Broadcasting message to {len(self._peers)} peers.")
-        for peer_id, peer_info in list(self._peers.items()):
-            if peer_id in self._clients:
-                self.send_message(peer_info, message_dict)
+        logger.info(f"Broadcasting message to {len(peers_to_broadcast)} peers.")
+        for peer_id, peer_info in peers_to_broadcast:
+            self.send_message(peer_info, message_dict)
 
     def connect_to_peer(self, peer_info: dict, protocol="TCP"):
         peer_id = peer_info['id']
-        peer_ip = peer_info['ip']
+        
+        with self._lock:
+            if peer_id in self._clients:
+                return
 
-        if peer_id in self._clients:
-            return
-
-        logger.info(f"Attempting to connect to {peer_id} at {peer_ip} via {protocol}...")
-        iface = "wlo1"
-        try:
-            if protocol == "TCP":
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-                except OSError: pass 
-                sock.settimeout(3.0)
-                sock.connect((peer_ip, peer_info['tcp_port']))
-                # ** THIS IS THE FIX: START A READER THREAD FOR THIS OUTGOING SOCKET **
-                receive_thread = threading.Thread(target=self._handle_tcp_receive, args=(peer_id, sock))
-                receive_thread.daemon = True
-                receive_thread.start()
-                self._threads.append(receive_thread)
-            else: 
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-                except OSError: pass
-            
-            self._clients[peer_id] = sock
-            self._peers[peer_id] = peer_info
-            logger.info(f"Successfully connected to {peer_id} via {protocol}.")
-        except Exception as e:
-            logger.error(f"Failed to connect to {peer_id}: {e}")
+            logger.info(f"Attempting to connect to {peer_id} at {peer_info['ip']} via {protocol}...")
+            iface = "wlo1"
+            try:
+                if protocol == "TCP":
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
+                    except OSError: pass 
+                    sock.settimeout(3.0)
+                    sock.connect((peer_info['ip'], peer_info['tcp_port']))
+                    
+                    receive_thread = threading.Thread(target=self._handle_tcp_receive, args=(peer_id, sock))
+                    receive_thread.daemon = True
+                    receive_thread.start()
+                    self._threads.append(receive_thread)
+                else: 
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
+                    except OSError: pass
+                
+                self._clients[peer_id] = sock
+                self._peers[peer_id] = peer_info
+                logger.info(f"Successfully connected to {peer_id} via {protocol}.")
+            except Exception as e:
+                logger.error(f"Failed to connect to {peer_id}: {e}")
 
     def disconnect_from_peer(self, peer_id):
-        if peer_id in self._clients:
-            logger.info(f"Disconnecting from peer {peer_id}.")
-            try: self._clients[peer_id].close()
-            except Exception: pass
-            finally:
-                if peer_id in self._clients: del self._clients[peer_id]
-                if peer_id in self._peers: del self._peers[peer_id]
+        with self._lock:
+            if peer_id in self._clients:
+                logger.info(f"Disconnecting from peer {peer_id}.")
+                try: self._clients[peer_id].close()
+                except Exception: pass
+                finally:
+                    if peer_id in self._clients: del self._clients[peer_id]
+                    if peer_id in self._peers: del self._peers[peer_id]
 
     def send_message(self, peer_info: dict, message_dict: dict):
         peer_id = peer_info['id']
-        if peer_id not in self._clients:
+        with self._lock:
+            sock = self._clients.get(peer_id)
+        
+        if not sock:
             logger.warning(f"Not connected to {peer_id}. Cannot send message.")
             return
         try:
-            sock = self._clients[peer_id]
             protocol = "TCP" if sock.type == socket.SOCK_STREAM else "UDP"
             if 'drone_id' not in message_dict: message_dict['drone_id'] = self._drone_id
             message_json = json.dumps(message_dict)
@@ -317,7 +326,6 @@ class ConnectionManager:
             try:
                 client_socket, addr = server_socket.accept()
                 logger.info(f"Accepted TCP connection from {addr}")
-                # The handler for INCOMING sockets is also the reader thread for them
                 handler_thread = threading.Thread(target=self._handle_tcp_receive, args=(None, client_socket))
                 handler_thread.daemon = True
                 handler_thread.start()
@@ -328,9 +336,6 @@ class ConnectionManager:
         server_socket.close()
 
     def _handle_tcp_receive(self, peer_id, client_socket):
-        """
-        Dedicated reader loop for a single TCP socket (can be from an outgoing or incoming connection).
-        """
         buffer = ""
         is_identified = peer_id is not None
         
@@ -344,21 +349,23 @@ class ConnectionManager:
                     if message_json:
                         message = json.loads(message_json)
                         if not is_identified:
-                            peer_id = message.get('drone_id')
-                            if peer_id:
-                                self._clients[peer_id] = client_socket
-                                if peer_id in self._discovered_peers:
-                                    self._peers[peer_id] = self._discovered_peers[peer_id]
-                                    logger.info(f"Identified and registered incoming TCP peer {peer_id}")
-                                else:
-                                    logger.warning(f"Incoming TCP peer {peer_id} not in discovered list.")
-                                is_identified = True
+                            with self._lock:
+                                peer_id = message.get('drone_id')
+                                if peer_id:
+                                    self._clients[peer_id] = client_socket
+                                    if peer_id in self._discovered_peers:
+                                        self._peers[peer_id] = self._discovered_peers[peer_id]
+                                        logger.info(f"Identified and registered incoming TCP peer {peer_id}")
+                                    else:
+                                        logger.warning(f"Incoming TCP peer {peer_id} not in discovered list.")
+                                    is_identified = True
                         self.message_queue.append(message)
             except (ConnectionResetError, BrokenPipeError, OSError):
                 break
             except Exception as e:
                 logger.error(f"Error handling TCP client {peer_id}: {e}")
                 break
+        
         if peer_id: self._handle_disconnection(peer_id)
         client_socket.close()
 
