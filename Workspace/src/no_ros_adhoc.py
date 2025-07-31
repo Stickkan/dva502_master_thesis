@@ -1,4 +1,4 @@
-# enhanced_standalone_controller_final_v5.py
+# enhanced_standalone_controller_final.py
 
 import socket
 import threading
@@ -188,13 +188,13 @@ class ConnectionManager:
         self.on_message_received = on_message_received_callback
         self._tcp_port = tcp_port
         self._udp_port = udp_port
-        self._discovered_peers = discovered_peers_ref # Reference to controller's dict
+        self._discovered_peers = discovered_peers_ref
         self._running = True
         self._threads = []
         self._clients = {}
         self._peers = {}
         self.message_queue = deque()
-        self._lock = threading.Lock() # The new lock
+        self._lock = threading.Lock()
 
     def start(self):
         logger.info(f"Starting connection manager for {self._drone_id}")
@@ -234,29 +234,31 @@ class ConnectionManager:
     
     def broadcast_message(self, message_dict):
         with self._lock:
-            # Get a consistent copy of peers to broadcast to
             peers_to_broadcast = list(self._peers.items())
-
         if not peers_to_broadcast:
             logger.debug("Broadcast requested, but no peers are registered.")
             return
-        
         logger.info(f"Broadcasting message to {len(peers_to_broadcast)} peers.")
         for peer_id, peer_info in peers_to_broadcast:
             self.send_message(peer_info, message_dict)
 
     def connect_to_peer(self, peer_info: dict, protocol="TCP"):
         peer_id = peer_info['id']
-        
         with self._lock:
             if peer_id in self._clients:
                 return
-
             logger.info(f"Attempting to connect to {peer_id} at {peer_info['ip']} via {protocol}...")
             iface = "wlo1"
             try:
                 if protocol == "TCP":
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    try:
+                        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
+                        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
+                        sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                    except (AttributeError, OSError): pass
+                    
                     try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
                     except OSError: pass 
                     sock.settimeout(3.0)
@@ -291,9 +293,7 @@ class ConnectionManager:
         peer_id = peer_info['id']
         with self._lock:
             sock = self._clients.get(peer_id)
-        
         if not sock:
-            logger.warning(f"Not connected to {peer_id}. Cannot send message.")
             return
         try:
             protocol = "TCP" if sock.type == socket.SOCK_STREAM else "UDP"
@@ -317,19 +317,22 @@ class ConnectionManager:
         try:
             server_socket.bind(('', self._tcp_port))
         except OSError as e:
-            logger.error(f"TCP server bind failed on port {self._tcp_port}: {e}")
-            return
-        server_socket.listen(5)
-        server_socket.settimeout(1.0)
+            logger.error(f"TCP server bind failed on port {self._tcp_port}: {e}"); return
+        server_socket.listen(5); server_socket.settimeout(1.0)
         logger.info(f"TCP server listening on port {self._tcp_port}")
         while self._running:
             try:
                 client_socket, addr = server_socket.accept()
                 logger.info(f"Accepted TCP connection from {addr}")
+                client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                try:
+                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
+                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
+                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                except (AttributeError, OSError): pass
+                
                 handler_thread = threading.Thread(target=self._handle_tcp_receive, args=(None, client_socket))
-                handler_thread.daemon = True
-                handler_thread.start()
-                self._threads.append(handler_thread)
+                handler_thread.daemon = True; handler_thread.start(); self._threads.append(handler_thread)
             except socket.timeout: continue
             except Exception as e:
                 if self._running: logger.error(f"TCP Server error: {e}")
@@ -338,7 +341,6 @@ class ConnectionManager:
     def _handle_tcp_receive(self, peer_id, client_socket):
         buffer = ""
         is_identified = peer_id is not None
-        
         while self._running:
             try:
                 data = client_socket.recv(4096)
@@ -360,19 +362,14 @@ class ConnectionManager:
                                         logger.warning(f"Incoming TCP peer {peer_id} not in discovered list.")
                                     is_identified = True
                         self.message_queue.append(message)
-            except (ConnectionResetError, BrokenPipeError, OSError):
-                break
-            except Exception as e:
-                logger.error(f"Error handling TCP client {peer_id}: {e}")
-                break
-        
+            except (ConnectionResetError, BrokenPipeError, OSError): break
+            except Exception as e: logger.error(f"Error handling TCP client {peer_id}: {e}"); break
         if peer_id: self._handle_disconnection(peer_id)
         client_socket.close()
 
     def _udp_server_loop(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server_socket.bind(('', self._udp_port))
-        server_socket.settimeout(1.0)
+        server_socket.bind(('', self._udp_port)); server_socket.settimeout(1.0)
         logger.info(f"UDP server listening on port {self._udp_port}")
         while self._running:
             try:
@@ -380,9 +377,7 @@ class ConnectionManager:
                 try:
                     message = json.loads(data.decode('utf-8'))
                     self.message_queue.append(message)
-                except json.JSONDecodeError:
-                    logger.debug(f"Received non-JSON UDP data from {addr}, ignoring.")
-                    continue
+                except json.JSONDecodeError: logger.debug(f"Received non-JSON UDP data from {addr}, ignoring."); continue
             except socket.timeout: continue
             except Exception as e:
                 if self._running: logger.error(f"UDP Server error: {e}")
@@ -393,10 +388,8 @@ class ConnectionManager:
             try:
                 message = self.message_queue.popleft()
                 self.on_message_received(message)
-            except IndexError:
-                time.sleep(0.01)
-            except Exception as e:
-                logger.error(f"Error processing message queue: {e}")
+            except IndexError: time.sleep(0.01)
+            except Exception as e: logger.error(f"Error processing message queue: {e}")
 
 # --- Main Controller Class ---
 class DroneController:
@@ -420,10 +413,9 @@ class DroneController:
             udp_port,
             self.discovered_peers 
         )
-
+    
     def start(self):
         logger.info(f"--- Starting Drone Controller for {self.drone_id} ---")
-        
         if self.should_setup_net:
             logger.info("Step 1a: This instance is setting up the Ad-Hoc Network Mode...")
             if not self.discovery.setup_adhoc_network():
@@ -439,13 +431,10 @@ class DroneController:
             return False
 
         time.sleep(2)
-
         logger.info("Step 2: Starting Connection Manager...")
         self.connection_manager.start()
-
         logger.info("Step 3: Starting Discovery Service...")
         self.discovery.start_threads()
-
         logger.info("Step 4: Starting Application Logic Threads (Reconnection & Status)...")
         self._app_running = True
         recon_thread = threading.Thread(target=self._periodic_reconnection_check)
@@ -453,7 +442,6 @@ class DroneController:
         self._app_threads.extend([recon_thread, status_thread])
         recon_thread.start()
         status_thread.start()
-
         logger.info("--- Controller is Running ---")
         return True
 
@@ -482,10 +470,8 @@ class DroneController:
     def _handle_peer_discovery(self, peer_info: dict):
         peer_id = peer_info['id']
         self.discovered_peers[peer_id] = peer_info
-
         if peer_id not in self.tested_peers:
             self.tested_peers.add(peer_id)
-            
             if self.drone_id > peer_id:
                 logger.info(f"New peer '{peer_id}' discovered. My ID is greater, so I will initiate the connection.")
                 sequence_thread = threading.Thread(target=self._run_comm_sequence, args=(peer_info,))
@@ -509,13 +495,9 @@ class DroneController:
         package_number = 0
         while self._app_running:
             time.sleep(10)
+            if not self._app_running: break
             package_number += 1
-            status_message = {
-                "protocol": "STATUS_BROADCAST",
-                "package_number": package_number,
-                "energy_level": 98.5,
-                "position": {"x": 1.0, "y": 2.0, "z": 3.0}
-            }
+            status_message = {"protocol": "STATUS_BROADCAST", "package_number": package_number, "energy_level": 98.5, "position": {"x": 1.0, "y": 2.0, "z": 3.0}}
             self.connection_manager.broadcast_message(status_message)
             
     def _handle_message_received(self, message):
