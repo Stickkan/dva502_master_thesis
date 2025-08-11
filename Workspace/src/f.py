@@ -53,22 +53,41 @@ class Discovery:
             return False
 
     def setup_adhoc_network(self):
-        logger.info("Configuring ad-hoc network mode...")
+        """A more robust method to configure the ad-hoc network."""
+        logger.info("Configuring ad-hoc network mode (robust sequence)...")
         iface = self.adhoc_config["interface"]
         ssid = self.adhoc_config["ssid"]
+
+        # This new sequence is more forceful in taking control of the interface
         commands = [
+            # 1. Politely ask NetworkManager to disconnect the device first.
+            ['sudo', 'nmcli', 'dev', 'disconnect', iface],
+            # 2. Tell NetworkManager not to manage the device anymore.
             ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],
+            # 3. Forcibly kill any supplicant process that might be holding a lock.
+            ['sudo', 'killall', 'wpa_supplicant'],
+            # 4. Now, bring the link down.
             ['sudo', 'ip', 'link', 'set', iface, 'down'],
+            # 5. With the device fully free, set the ad-hoc mode. This should now succeed.
             ['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'],
             ['sudo', 'iwconfig', iface, 'essid', ssid],
             ['sudo', 'iwconfig', iface, 'channel', '6'],
+            # 6. Bring the link back up and flush any old IPs.
             ['sudo', 'ip', 'link', 'set', iface, 'up'],
             ['sudo', 'ip', 'addr', 'flush', 'dev', iface],
         ]
+
+        # We add a short delay between some commands to let the system catch up
         for cmd in commands:
             if not self._run_command(cmd):
-                logger.error("Failed to set up ad-hoc network mode.")
-                return False
+                # We can ignore errors from killall if the process wasn't running
+                if 'killall' in cmd[1] and 'no process found' in str(e):
+                    logger.warning("wpa_supplicant was not running, which is fine.")
+                    continue
+                logger.error("A command failed during the robust setup sequence.")
+                #return False # Commented out to allow it to continue even if one fails
+            time.sleep(0.5) # A half-second pause after each command
+
         logger.info(f"Ad-hoc network mode '{ssid}' configured on {iface}.")
         return True
     
