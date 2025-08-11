@@ -52,41 +52,41 @@ class Discovery:
             logger.error(f"Exception running command: {e}")
             return False
 
+    # In the Discovery class
+
     def setup_adhoc_network(self):
         """A more robust method to configure the ad-hoc network."""
         logger.info("Configuring ad-hoc network mode (robust sequence)...")
         iface = self.adhoc_config["interface"]
         ssid = self.adhoc_config["ssid"]
 
-        # This new sequence is more forceful in taking control of the interface
         commands = [
-            # 1. Politely ask NetworkManager to disconnect the device first.
             ['sudo', 'nmcli', 'dev', 'disconnect', iface],
-            # 2. Tell NetworkManager not to manage the device anymore.
             ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],
-            # 3. Forcibly kill any supplicant process that might be holding a lock.
             ['sudo', 'killall', 'wpa_supplicant'],
-            # 4. Now, bring the link down.
             ['sudo', 'ip', 'link', 'set', iface, 'down'],
-            # 5. With the device fully free, set the ad-hoc mode. This should now succeed.
             ['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'],
             ['sudo', 'iwconfig', iface, 'essid', ssid],
             ['sudo', 'iwconfig', iface, 'channel', '6'],
-            # 6. Bring the link back up and flush any old IPs.
             ['sudo', 'ip', 'link', 'set', iface, 'up'],
+            # --- ADD THIS LINE ---
+            # Disable power management to prevent the card from sleeping
+            ['sudo', 'iwconfig', iface, 'power', 'off'],
+            # --- END OF ADDITION ---
             ['sudo', 'ip', 'addr', 'flush', 'dev', iface],
         ]
 
-        # We add a short delay between some commands to let the system catch up
         for cmd in commands:
-            if not self._run_command(cmd):
-                # We can ignore errors from killall if the process wasn't running
-                if 'killall' in cmd[1] and 'no process found' in str(e):
-                    logger.warning("wpa_supplicant was not running, which is fine.")
-                    continue
-                logger.error("A command failed during the robust setup sequence.")
-                #return False # Commented out to allow it to continue even if one fails
-            time.sleep(0.5) # A half-second pause after each command
+            # Added a simple try-except block to handle the 'killall' case gracefully
+            try:
+                if not self._run_command(cmd):
+                    # This is not a real error if the process wasn't running
+                    if 'killall' in cmd[0] and 'no process found' in str(cmd):
+                         continue
+                    logger.error("A command failed during the robust setup sequence.")
+            except Exception as e:
+                 logger.error(f"An exception occurred running command {' '.join(cmd)}: {e}")
+            time.sleep(0.5)
 
         logger.info(f"Ad-hoc network mode '{ssid}' configured on {iface}.")
         return True
