@@ -1,0 +1,5 @@
+--interface wlo1 (Defaulted, non-required unless wanted)
+--ssid Defaults to drone-swarm-net
+--setup-net Do not run on either machine during live on different computers. Required on one instance if run locally (Sets one instance to handle the connection)
+--drone-id set name of the drone
+sudo python3 f.py --drone-id drone_1 --interface wlo1 --ssid drone-swarm-net --setup-net --tcp-port 20000 --udp-port 20001
