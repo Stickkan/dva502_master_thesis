@@ -4,3 +4,25 @@
 --drone-id set name of the drone
 
 sudo python3 f.py --drone-id drone_1 --interface wlo1 --ssid drone-swarm-net --setup-net --tcp-port 20000 --udp-port 20001
+
+----------------
+Manually set up ad-hoc network
+
+
+
+------------------------------
+Verification if drones are on the same network:
+# Make sure you really are in IBSS on the same channel/SSID
+iw dev wlo1 link
+# Expect: "Connected to ... (on IBSS)" + SSID drone-swarm-net + freq 2437 (ch 6)
+
+# See if you can see the other peer's beacons (optional)
+iw dev wlo1 scan | grep -A3 -i 'drone-swarm-net'
+
+# Watch for discovery traffic
+sudo tcpdump -ni wlo1 udp port 19999
+
+# Temporarily open the firewall (or allow the specific port)
+sudo ufw status
+sudo ufw allow 19999/udp
+

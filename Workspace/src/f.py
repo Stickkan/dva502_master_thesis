@@ -10,7 +10,7 @@ import argparse
 from collections import deque
 
 # --- Global Configuration ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("DroneController")
 
 # --- Discovery Class ---
@@ -54,13 +54,16 @@ class Discovery:
 
     # In the Discovery class
 
+    # In the Discovery class
+
     def setup_adhoc_network(self):
-        """A more robust method to configure the ad-hoc network."""
+        """Final, most compatible method to configure the ad-hoc network."""
         logger.info("Configuring ad-hoc network mode (robust sequence)...")
         iface = self.adhoc_config["interface"]
         ssid = self.adhoc_config["ssid"]
 
-        commands = [
+        # This sequence is forceful in taking control of the interface
+        setup_commands = [
             ['sudo', 'nmcli', 'dev', 'disconnect', iface],
             ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],
             ['sudo', 'killall', 'wpa_supplicant'],
@@ -69,24 +72,33 @@ class Discovery:
             ['sudo', 'iwconfig', iface, 'essid', ssid],
             ['sudo', 'iwconfig', iface, 'channel', '6'],
             ['sudo', 'ip', 'link', 'set', iface, 'up'],
-            # --- ADD THIS LINE ---
-            # Disable power management to prevent the card from sleeping
-            ['sudo', 'iwconfig', iface, 'power', 'off'],
-            # --- END OF ADDITION ---
             ['sudo', 'ip', 'addr', 'flush', 'dev', iface],
         ]
 
-        for cmd in commands:
-            # Added a simple try-except block to handle the 'killall' case gracefully
-            try:
-                if not self._run_command(cmd):
-                    # This is not a real error if the process wasn't running
-                    if 'killall' in cmd[0] and 'no process found' in str(cmd):
-                         continue
-                    logger.error("A command failed during the robust setup sequence.")
-            except Exception as e:
-                 logger.error(f"An exception occurred running command {' '.join(cmd)}: {e}")
-            time.sleep(0.5)
+        for cmd in setup_commands:
+            if not self._run_command(cmd):
+                # Ignore errors from killall if the process wasn't running
+                if 'killall' in cmd[0]:
+                    logger.warning("wpa_supplicant process not found, which is normal.")
+                    continue
+                # For any other command, failure is a critical error.
+                logger.critical(f"A critical setup command failed: {' '.join(cmd)}. Aborting network setup.")
+                return False
+            time.sleep(0.2) # A short pause after each command
+
+        # --- NEW POWER MANAGEMENT LOGIC ---
+        # Try to disable power management, but don't fail if the command isn't supported.
+        logger.info("Attempting to disable power management...")
+        power_cmd = ['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off']
+        if not self._run_command(power_cmd):
+            logger.warning(f"Could not disable power management with '{' '.join(power_cmd)}'. This may be okay.")
+            logger.warning("Attempting legacy command as a fallback...")
+            legacy_power_cmd = ['sudo', 'iwconfig', iface, 'power', 'off']
+            if not self._run_command(legacy_power_cmd):
+                logger.warning("Legacy power management command also failed. Connection may be unstable if power saving remains active.")
+        else:
+            logger.info("Successfully disabled power management.")
+        # --- END OF NEW LOGIC ---
 
         logger.info(f"Ad-hoc network mode '{ssid}' configured on {iface}.")
         return True
@@ -174,6 +186,7 @@ class Discovery:
             while self._running:
                 try:
                     sock.sendto(message.encode(), (self._broadcast_ip, self._port))
+                    sock.sendto(message.encode(), ('255.255.255.255', self._port))
                 except Exception:
                     if self._running: logger.error(f"Broadcast error", exc_info=True)
                 time.sleep(1)
