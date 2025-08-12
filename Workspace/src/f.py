@@ -8,6 +8,7 @@ import subprocess
 import logging
 import argparse
 from collections import deque
+import ipaddress
 
 # --- Global Configuration ---
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -161,40 +162,55 @@ class Discovery:
             return None
         return None
 
-    #LEGACY BROADCAST
     def _broadcast_presence(self):
-        iface = self.adhoc_config["interface"]
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    
 
-            # Drop SO_BINDTODEVICE for now (it can suppress traffic on some stacks)
-            # If you insist on keeping it, ensure iface is correct and you're root.
-            # try:
-            #     sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-            # except OSError:
-            #     pass
+        iface   = self.adhoc_config["interface"]
+        own_ip  = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+        bcast_ip = str(ipaddress.IPv4Interface(f"{own_ip}/24").network.broadcast_address)
 
-            # Do NOT bind the TX socket to own_ip. Let the kernel choose.
-            # own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
-            # sock.bind((own_ip, 0))
+        payload = {
+            "id": self._drone_id,
+            "ip": own_ip,
+            "tcp_port": self._tcp_port,
+            "udp_port": self._udp_port,
+        }
+        msg = json.dumps(payload).encode("utf-8")
 
-            message_payload = {
-                "id": self._drone_id,
-                "ip": f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}",
-                "tcp_port": self._tcp_port,
-                "udp_port": self._udp_port
-            }
-            message = json.dumps(message_payload)
+        # Socket A: subnet broadcast (no bind needed)
+        sock_subnet = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock_subnet.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
+        # Socket B: limited broadcast, bound to own IP (so the kernel has a route)
+        sock_limited = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock_limited.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        try:
+            sock_limited.bind((own_ip, 0))
+            limited_ok = True
+        except OSError as e:
+            logger.debug(f"Limited-broadcast bind skipped ({e}); will use subnet only.")
+            limited_ok = False
+
+        try:
             while self._running:
+                # 1) Subnet broadcast (reliable in IBSS)
                 try:
-                    # Send to both subnet and limited broadcast (mirrors the legacy behavior)
-                    sock.sendto(message.encode(), (self._broadcast_ip, self._port))
-                    sock.sendto(message.encode(), ("255.255.255.255", self._port))
-                except Exception:
-                    if self._running:
-                        logger.error("Broadcast error", exc_info=True)
+                    sock_subnet.sendto(msg, (bcast_ip, self._port))
+                except OSError as e:
+                    logger.error(f"Subnet broadcast to {bcast_ip}:{self._port} failed: {e}")
+
+                # 2) Limited broadcast (optional)
+                if limited_ok:
+                    try:
+                        sock_limited.sendto(msg, ("255.255.255.255", self._port))
+                    except OSError as e:
+                        # ENETUNREACH/EINVAL are common; keep this quiet unless debugging
+                        logger.debug(f"Limited broadcast failed: {e}")
                 time.sleep(1)
+        finally:
+            sock_subnet.close()
+            sock_limited.close()
+
 
     def _listen_for_peers(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
