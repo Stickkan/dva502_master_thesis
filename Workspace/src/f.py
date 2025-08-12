@@ -176,7 +176,7 @@ class Discovery:
                     sock.sendto(message.encode(), (self._broadcast_ip, self._port))
                 except Exception:
                     if self._running: logger.error(f"Broadcast error", exc_info=True)
-                time.sleep(5)
+                time.sleep(1)
 
     def _listen_for_peers(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
