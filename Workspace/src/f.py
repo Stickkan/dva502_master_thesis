@@ -160,36 +160,77 @@ class Discovery:
         except Exception:
             return None
         return None
-    
-    def _broadcast_presence(self):
-        iface = self.adhoc_config["interface"]
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+#NEW BROADCAST
+"""def _broadcast_presence(self):
+    iface = self.adhoc_config["interface"]
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        # Drop SO_BINDTODEVICE for now (it can suppress traffic on some stacks)
+        # If you insist on keeping it, ensure iface is correct and you're root.
+        # try:
+        #     sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
+        # except OSError:
+        #     pass
+
+        # Do NOT bind the TX socket to own_ip. Let the kernel choose.
+        # own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+        # sock.bind((own_ip, 0))
+
+        message_payload = {
+            "id": self._drone_id,
+            "ip": f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}",
+            "tcp_port": self._tcp_port,
+            "udp_port": self._udp_port
+        }
+        message = json.dumps(message_payload)
+
+        while self._running:
             try:
-                sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-            except OSError: pass # Fails on non-Linux
-            
-            own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+                # Send to both subnet and limited broadcast (mirrors the legacy behavior)
+                sock.sendto(message.encode(), (self._broadcast_ip, self._port))
+                sock.sendto(message.encode(), ("255.255.255.255", self._port))
+            except Exception:
+                if self._running:
+                    logger.error("Broadcast error", exc_info=True)
+            time.sleep(1)
+"""
+
+#LEGACY BROADCAST
+def _broadcast_presence(self):
+    iface = self.adhoc_config["interface"]
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        # Drop SO_BINDTODEVICE for now (it can suppress traffic on some stacks)
+        # If you insist on keeping it, ensure iface is correct and you're root.
+        # try:
+        #     sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
+        # except OSError:
+        #     pass
+
+        # Do NOT bind the TX socket to own_ip. Let the kernel choose.
+        # own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+        # sock.bind((own_ip, 0))
+
+        message_payload = {
+            "id": self._drone_id,
+            "ip": f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}",
+            "tcp_port": self._tcp_port,
+            "udp_port": self._udp_port
+        }
+        message = json.dumps(message_payload)
+
+        while self._running:
             try:
-                sock.bind((own_ip, 0))
-            except socket.error as e:
-                logger.error(f"Discovery broadcast socket failed to bind to {own_ip}: {e}")
-                return
-            
-            message_payload = {
-                "id": self._drone_id,
-                "ip": own_ip,
-                "tcp_port": self._tcp_port,
-                "udp_port": self._udp_port
-            }
-            message = json.dumps(message_payload)
-            while self._running:
-                try:
-                    sock.sendto(message.encode(), (self._broadcast_ip, self._port))
-                    sock.sendto(message.encode(), ('255.255.255.255', self._port))
-                except Exception:
-                    if self._running: logger.error(f"Broadcast error", exc_info=True)
-                time.sleep(1)
+                # Send to both subnet and limited broadcast (mirrors the legacy behavior)
+                sock.sendto(message.encode(), (self._broadcast_ip, self._port))
+                sock.sendto(message.encode(), ("255.255.255.255", self._port))
+            except Exception:
+                if self._running:
+                    logger.error("Broadcast error", exc_info=True)
+            time.sleep(1)
 
     def _listen_for_peers(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
