@@ -1,0 +1,18 @@
+# System packages required for the ad‑hoc drone controller
+# Install with: sudo apt-get update && xargs -a <(sed -e 's/#.*//' -e '/^\s*$/d' drone_app_system_requirements.txt) -r sudo apt-get install -y
+
+# Network & wireless tooling
+network-manager      # provides nmcli
+iw                   # provides 'iw'
+wireless-tools       # provides 'iwconfig'
+iproute2             # provides 'ip'
+psmisc               # provides 'killall'
+
+# Optional but recommended (firewall + debugging)
+ufw
+tcpdump
+
+# Python runtime
+python3
+python3-venv
+python3-pip
