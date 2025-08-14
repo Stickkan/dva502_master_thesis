@@ -9,12 +9,39 @@ import logging
 import argparse
 from collections import deque
 import ipaddress
+import os
 
-# --- Global Configuration ---
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("DroneController")
 
-# --- Discovery Class ---
+# -------- Utilities --------
+def detect_wifi_interface() -> str | None:
+    """Best-effort detection of a Wi-Fi NIC."""
+    try:
+        out = subprocess.check_output(['iw', 'dev'], stderr=subprocess.DEVNULL).decode()
+        for line in out.splitlines():
+            line = line.strip()
+            if line.startswith('Interface '):
+                return line.split()[1]
+    except Exception:
+        pass
+    try:
+        out = subprocess.check_output(['nmcli', '-t', '-f', 'DEVICE,TYPE', 'device'],
+                                      stderr=subprocess.DEVNULL).decode()
+        for line in out.splitlines():
+            dev, typ = line.split(':')
+            if typ == 'wifi':
+                return dev
+    except Exception:
+        pass
+    return None
+
+def id_num(s: str) -> int:
+    digits = ''.join(filter(str.isdigit, s))
+    return int(digits) if digits else 0
+
+# -------- Discovery --------
 class Discovery:
     def __init__(self, drone_id, tcp_port, udp_port, discovery_port=19999):
         self._drone_id = drone_id
@@ -23,15 +50,15 @@ class Discovery:
         self._udp_port = udp_port
         self.on_peer_discovered = None
         self._running = True
-        
+
         self.adhoc_config = {
-            "interface": "wlo1",
+            "interface": "wlo1",     # will be overridden by controller
             "ssid": "drone-swarm-net",
+            "channel": 6,            # 2.4 GHz ch 6 (2437 MHz)
             "ip_base": "192.168.1.",
-            "self_ip_ending": self._get_ip_ending_from_id()
+            "self_ip_ending": self._get_ip_ending_from_id(),
         }
         self._original_connection = self._get_active_connection()
-        self._broadcast_ip = f"{self.adhoc_config['ip_base']}255"
         self._threads = []
 
     def _get_ip_ending_from_id(self):
@@ -43,118 +70,161 @@ class Discovery:
     def _run_command(self, command):
         logger.info(f"Running command: {' '.join(command)}")
         try:
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
-            if process.returncode != 0:
-                logger.error(f"Command failed: {stderr.decode().strip()}")
+            proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            if proc.returncode != 0:
+                err = stderr.decode(errors='ignore').strip()
+                if err:
+                    logger.error(f"Command failed: {err}")
                 return False
             return True
         except Exception as e:
             logger.error(f"Exception running command: {e}")
             return False
 
-    # In the Discovery class
-
-    # In the Discovery class
+    def _wait_nm_running(self, timeout=8):
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            try:
+                out = subprocess.check_output(
+                    ['nmcli', '-t', '-f', 'RUNNING', 'general', 'status'],
+                    stderr=subprocess.DEVNULL
+                ).decode().strip()
+                if out == 'running':
+                    return True
+            except Exception:
+                pass
+            time.sleep(0.2)
+        return False
 
     def setup_adhoc_network(self):
-        """Final, most compatible method to configure the ad-hoc network."""
-        logger.info("Configuring ad-hoc network mode (robust sequence)...")
+        """Bring NIC to IBSS on a fixed frequency; robust sequence with fallback."""
+        logger.info("Configuring ad-hoc (IBSS) network...")
         iface = self.adhoc_config["interface"]
         ssid = self.adhoc_config["ssid"]
+        channel = int(self.adhoc_config.get("channel", 6))
+        freq_mhz = str({1:2412,6:2437,11:2462}.get(channel, 2437))
 
-        # This sequence is forceful in taking control of the interface
-        setup_commands = [
-            ['sudo', 'nmcli', 'dev', 'disconnect', iface],
-            ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],
-            ['sudo', 'killall', 'wpa_supplicant'],
+        # Ensure NM is responsive (non-fatal if not)
+        self._wait_nm_running()
+
+        steps = [
+            ['sudo', 'nmcli', 'dev', 'disconnect', iface],            # non-fatal
+            ['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'],  # non-fatal if already unmanaged
             ['sudo', 'ip', 'link', 'set', iface, 'down'],
-            ['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'],
-            ['sudo', 'iwconfig', iface, 'essid', ssid],
-            ['sudo', 'iwconfig', iface, 'channel', '6'],
-            ['sudo', 'ip', 'link', 'set', iface, 'up'],
             ['sudo', 'ip', 'addr', 'flush', 'dev', iface],
         ]
-
-        for cmd in setup_commands:
-            if not self._run_command(cmd):
-                # Ignore errors from killall if the process wasn't running
-                if 'killall' in cmd[0]:
-                    logger.warning("wpa_supplicant process not found, which is normal.")
-                    continue
-                # For any other command, failure is a critical error.
-                logger.critical(f"A critical setup command failed: {' '.join(cmd)}. Aborting network setup.")
+        for cmd in steps:
+            ok = self._run_command(cmd)
+            if not ok and cmd[:4] == ['sudo', 'nmcli', 'dev', 'disconnect']:
+                logger.warning("Non-fatal: device already disconnected.")
+            elif not ok and cmd[:5] == ['sudo', 'nmcli', 'dev', 'set', iface, 'managed']:
+                logger.warning("Non-fatal: device already unmanaged.")
+            elif not ok:
+                logger.critical(f"A critical setup command failed: {' '.join(cmd)}.")
                 return False
-            time.sleep(0.2) # A short pause after each command
+            time.sleep(0.2)
 
-        # --- NEW POWER MANAGEMENT LOGIC ---
-        # Try to disable power management, but don't fail if the command isn't supported.
-        logger.info("Attempting to disable power management...")
-        power_cmd = ['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off']
-        if not self._run_command(power_cmd):
-            logger.warning(f"Could not disable power management with '{' '.join(power_cmd)}'. This may be okay.")
-            logger.warning("Attempting legacy command as a fallback...")
-            legacy_power_cmd = ['sudo', 'iwconfig', iface, 'power', 'off']
-            if not self._run_command(legacy_power_cmd):
-                logger.warning("Legacy power management command also failed. Connection may be unstable if power saving remains active.")
+        # Preferred: modern iw ibss join with fixed frequency
+        if self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'join', ssid, freq_mhz, 'HT20', 'fixed-freq']):
+            logger.info(f"Joined IBSS '{ssid}' on {iface} @ {freq_mhz} MHz (HT20).")
         else:
-            logger.info("Successfully disabled power management.")
-        # --- END OF NEW LOGIC ---
+            logger.warning("iw ibss join failed; falling back to iwconfig (legacy).")
+            legacy = [
+                ['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'],
+                ['sudo', 'iwconfig', iface, 'essid', ssid],
+                ['sudo', 'iwconfig', iface, 'channel', str(channel)],
+            ]
+            for cmd in legacy:
+                if not self._run_command(cmd):
+                    logger.critical(f"Legacy ad-hoc setup failed: {' '.join(cmd)}.")
+                    return False
+                time.sleep(0.2)
 
-        logger.info(f"Ad-hoc network mode '{ssid}' configured on {iface}.")
+        if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
+            logger.critical(f"Failed to set {iface} up.")
+            return False
+
+        # Power-save toggles are best-effort; many drivers N/A in IBSS
+        for pcmd in (
+            ['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'],
+            ['sudo', 'iwconfig', iface, 'power', 'off'],
+        ):
+            if self._run_command(pcmd):
+                logger.info("Disabled Wi-Fi power saving.")
+                break
         return True
-    
+
     def _assign_ip_address(self):
         logger.info("Assigning IP address...")
         ip_address = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}/24"
         iface = self.adhoc_config["interface"]
         if not self._run_command(['sudo', 'ip', 'addr', 'add', ip_address, 'dev', iface]):
-            logger.error(f"Failed to assign IP address {ip_address} to {iface}.")
+            logger.error(f"Failed to assign IP {ip_address} to {iface}.")
             return False
-        logger.info(f"Successfully assigned IP {ip_address} to {iface}.")
+        logger.info(f"Assigned IP {ip_address} to {iface}.")
         return True
 
     def teardown_adhoc_network(self):
+        """Return NIC to managed mode and bring NetworkManager/wpa_supplicant back."""
         logger.info("Restoring original network state...")
         iface = self.adhoc_config["interface"]
+
+        # Leave IBSS and flush state
         self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
-        time.sleep(1)
+        self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
+
+        # Put device back to managed mode (try iw then legacy)
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed']):
+            self._run_command(['sudo', 'iwconfig', iface, 'mode', 'managed'])
+
+        # Hand control back to NetworkManager and restart it
         self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'yes'])
-        time.sleep(4) 
+        self._run_command(['sudo', 'systemctl', 'restart', 'NetworkManager'])
+        time.sleep(3)
+        self._run_command(['nmcli', 'radio', 'wifi', 'on'])
+        self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
+        time.sleep(2)
+
         if self._original_connection:
             logger.info(f"Attempting to reconnect to '{self._original_connection}'...")
-            self._run_command(['sudo', 'nmcli', 'con', 'up', 'id', self._original_connection])
+            # nmcli up often works fine without sudo
+            self._run_command(['nmcli', 'con', 'up', 'id', self._original_connection])
         else:
             logger.warning("No known previous connection to restore.")
 
     def start_threads(self):
         logger.info(f"Starting discovery threads on port {self._port}...")
         self._running = True
-        broadcast_thread = threading.Thread(target=self._broadcast_presence)
-        listen_thread = threading.Thread(target=self._listen_for_peers)
-        self._threads.extend([broadcast_thread, listen_thread])
-        broadcast_thread.start()
-        listen_thread.start()
+        t1 = threading.Thread(target=self._broadcast_presence, daemon=True)
+        t2 = threading.Thread(target=self._listen_for_peers, daemon=True)
+        self._threads.extend([t1, t2])
+        t1.start(); t2.start()
 
     def stop_threads(self):
-        if not self._running: return
+        if not self._running:
+            return
         logger.info("Stopping discovery threads...")
         self._running = False
-        try: 
+        try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.sendto(b'stop', ('127.0.0.1', self._port))
-        except Exception: pass
-            
-        for thread in self._threads:
-            thread.join(timeout=2.0)
-        self._threads = []
+        except Exception:
+            pass
+        for t in self._threads:
+            t.join(timeout=2.0)
+        self._threads.clear()
         logger.info("Discovery threads stopped.")
 
     def _get_active_connection(self):
         try:
-            result = subprocess.check_output(['nmcli', '-t', '-f', 'NAME,DEVICE', 'con', 'show', '--active'], stderr=subprocess.DEVNULL).decode()
+            result = subprocess.check_output(
+                ['nmcli', '-t', '-f', 'NAME,DEVICE', 'con', 'show', '--active'],
+                stderr=subprocess.DEVNULL
+            ).decode()
             for line in result.strip().split('\n'):
-                if not line.strip(): continue
+                if not line.strip():
+                    continue
                 name, dev = line.split(':')
                 if dev == self.adhoc_config["interface"]:
                     return name
@@ -163,10 +233,8 @@ class Discovery:
         return None
 
     def _broadcast_presence(self):
-    
-
-        iface   = self.adhoc_config["interface"]
-        own_ip  = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
+        iface = self.adhoc_config["interface"]
+        own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
         bcast_ip = str(ipaddress.IPv4Interface(f"{own_ip}/24").network.broadcast_address)
 
         payload = {
@@ -177,40 +245,34 @@ class Discovery:
         }
         msg = json.dumps(payload).encode("utf-8")
 
-        # Socket A: subnet broadcast (no bind needed)
         sock_subnet = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_subnet.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        # Socket B: limited broadcast, bound to own IP (so the kernel has a route)
         sock_limited = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_limited.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         try:
+            # bind so kernel has a route for 255.255.255.255
             sock_limited.bind((own_ip, 0))
             limited_ok = True
         except OSError as e:
-            logger.debug(f"Limited-broadcast bind skipped ({e}); will use subnet only.")
+            logger.debug(f"Limited-broadcast bind skipped ({e}); using subnet only.")
             limited_ok = False
 
         try:
             while self._running:
-                # 1) Subnet broadcast (reliable in IBSS)
                 try:
                     sock_subnet.sendto(msg, (bcast_ip, self._port))
                 except OSError as e:
                     logger.error(f"Subnet broadcast to {bcast_ip}:{self._port} failed: {e}")
-
-                # 2) Limited broadcast (optional)
                 if limited_ok:
                     try:
                         sock_limited.sendto(msg, ("255.255.255.255", self._port))
                     except OSError as e:
-                        # ENETUNREACH/EINVAL are common; keep this quiet unless debugging
                         logger.debug(f"Limited broadcast failed: {e}")
                 time.sleep(1)
         finally:
             sock_subnet.close()
             sock_limited.close()
-
 
     def _listen_for_peers(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
@@ -232,50 +294,13 @@ class Discovery:
                 except socket.timeout:
                     continue
                 except Exception:
-                    if not self._running: break
+                    if not self._running:
+                        break
 
-
-#NEW BROADCAST
-"""def _broadcast_presence(self):
-    iface = self.adhoc_config["interface"]
-    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-        # Drop SO_BINDTODEVICE for now (it can suppress traffic on some stacks)
-        # If you insist on keeping it, ensure iface is correct and you're root.
-        # try:
-        #     sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-        # except OSError:
-        #     pass
-
-        # Do NOT bind the TX socket to own_ip. Let the kernel choose.
-        # own_ip = f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}"
-        # sock.bind((own_ip, 0))
-
-        message_payload = {
-            "id": self._drone_id,
-            "ip": f"{self.adhoc_config['ip_base']}{self.adhoc_config['self_ip_ending']}",
-            "tcp_port": self._tcp_port,
-            "udp_port": self._udp_port
-        }
-        message = json.dumps(message_payload)
-
-        while self._running:
-            try:
-                # Send to both subnet and limited broadcast (mirrors the legacy behavior)
-                sock.sendto(message.encode(), (self._broadcast_ip, self._port))
-                sock.sendto(message.encode(), ("255.255.255.255", self._port))
-            except Exception:
-                if self._running:
-                    logger.error("Broadcast error", exc_info=True)
-            time.sleep(1)
-"""
-
-
-    
-# --- Connection Manager Class ---
+# -------- Connection Manager --------
 class ConnectionManager:
-    def __init__(self, drone_id, on_message_received_callback, tcp_port, udp_port, discovered_peers_ref):
+    def __init__(self, drone_id, on_message_received_callback, tcp_port, udp_port,
+                 discovered_peers_ref, bind_iface: str | None = None):
         self._drone_id = drone_id
         self.on_message_received = on_message_received_callback
         self._tcp_port = tcp_port
@@ -287,43 +312,42 @@ class ConnectionManager:
         self._peers = {}
         self.message_queue = deque()
         self._lock = threading.Lock()
+        self._bind_iface = bind_iface
 
     def start(self):
         logger.info(f"Starting connection manager for {self._drone_id}")
         self._running = True
-        threads_to_start = [
-            threading.Thread(target=self._tcp_server_loop),
-            threading.Thread(target=self._udp_server_loop),
-            threading.Thread(target=self._process_message_queue)
-        ]
-        for t in threads_to_start:
+        for target in (self._tcp_server_loop, self._udp_server_loop, self._process_message_queue):
+            t = threading.Thread(target=target, daemon=True)
             t.start()
             self._threads.append(t)
 
     def stop(self):
-        if not self._running: return
+        if not self._running:
+            return
         logger.info("Stopping connection manager...")
         self._running = False
         with self._lock:
-            for peer_id, client_socket in list(self._clients.items()):
-                try: client_socket.close()
-                except Exception: pass
-        
+            for _, client_socket in list(self._clients.items()):
+                try:
+                    client_socket.close()
+                except Exception:
+                    pass
         try:
             socket.create_connection(('127.0.0.1', self._tcp_port), timeout=0.5).close()
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
                 s.sendto(b'stop', ('127.0.0.1', self._udp_port))
-        except Exception: pass
-
-        for thread in self._threads:
-            thread.join(timeout=2.0)
-        self._threads = []
+        except Exception:
+            pass
+        for t in self._threads:
+            t.join(timeout=2.0)
+        self._threads.clear()
         logger.info("Connection manager stopped.")
-    
+
     def get_connected_peers(self):
         with self._lock:
             return list(self._clients.keys())
-    
+
     def broadcast_message(self, message_dict):
         with self._lock:
             peers_to_broadcast = list(self._peers.items())
@@ -339,8 +363,7 @@ class ConnectionManager:
         with self._lock:
             if peer_id in self._clients:
                 return
-            logger.info(f"Attempting to connect to {peer_id} at {peer_info['ip']} via {protocol}...")
-            iface = "wlo1"
+            logger.info(f"Connecting to {peer_id} at {peer_info['ip']} via {protocol}...")
             try:
                 if protocol == "TCP":
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -349,25 +372,34 @@ class ConnectionManager:
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
-                    except (AttributeError, OSError): pass
-                    
-                    try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-                    except OSError: pass 
-                    sock.settimeout(3.0)
+                    except (AttributeError, OSError):
+                        pass
+                    try:
+                        if self._bind_iface:
+                            sock.setsockopt(socket.SOL_SOCKET, 25, self._bind_iface.encode())  # SO_BINDTODEVICE
+                    except OSError:
+                        pass
+                    sock.settimeout(3.0)  # connect timeout only
                     sock.connect((peer_info['ip'], peer_info['tcp_port']))
-                    
-                    receive_thread = threading.Thread(target=self._handle_tcp_receive, args=(peer_id, sock))
-                    receive_thread.daemon = True
-                    receive_thread.start()
-                    self._threads.append(receive_thread)
-                else: 
+                    sock.settimeout(None)  # <<< back to blocking after connect
+
+                    # Identify immediately
+                    hello = {"protocol": "HELLO", "drone_id": self._drone_id}
+                    sock.sendall((json.dumps(hello) + "\n").encode("utf-8"))
+
+                    t = threading.Thread(target=self._handle_tcp_receive, args=(peer_id, sock), daemon=True)
+                    t.start()
+                    self._threads.append(t)
+                else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    try: sock.setsockopt(socket.SOL_SOCKET, 25, iface.encode())
-                    except OSError: pass
-                
+                    try:
+                        if self._bind_iface:
+                            sock.setsockopt(socket.SOL_SOCKET, 25, self._bind_iface.encode())
+                    except OSError:
+                        pass
                 self._clients[peer_id] = sock
                 self._peers[peer_id] = peer_info
-                logger.info(f"Successfully connected to {peer_id} via {protocol}.")
+                logger.info(f"Connected to {peer_id} via {protocol}.")
             except Exception as e:
                 logger.error(f"Failed to connect to {peer_id}: {e}")
 
@@ -375,11 +407,13 @@ class ConnectionManager:
         with self._lock:
             if peer_id in self._clients:
                 logger.info(f"Disconnecting from peer {peer_id}.")
-                try: self._clients[peer_id].close()
-                except Exception: pass
+                try:
+                    self._clients[peer_id].close()
+                except Exception:
+                    pass
                 finally:
-                    if peer_id in self._clients: del self._clients[peer_id]
-                    if peer_id in self._peers: del self._peers[peer_id]
+                    self._clients.pop(peer_id, None)
+                    self._peers.pop(peer_id, None)
 
     def send_message(self, peer_info: dict, message_dict: dict):
         peer_id = peer_info['id']
@@ -389,12 +423,13 @@ class ConnectionManager:
             return
         try:
             protocol = "TCP" if sock.type == socket.SOCK_STREAM else "UDP"
-            if 'drone_id' not in message_dict: message_dict['drone_id'] = self._drone_id
-            message_json = json.dumps(message_dict)
+            if 'drone_id' not in message_dict:
+                message_dict['drone_id'] = self._drone_id
+            payload = (json.dumps(message_dict) + ('\n' if protocol == "TCP" else '')).encode('utf-8')
             if protocol == "TCP":
-                sock.sendall(message_json.encode('utf-8') + b'\n')
+                sock.sendall(payload)
             else:
-                sock.sendto(message_json.encode('utf-8'), (peer_info['ip'], peer_info['udp_port']))
+                sock.sendto(payload, (peer_info['ip'], peer_info['udp_port']))
         except Exception as e:
             logger.error(f"Error sending message to {peer_id}: {e}")
             self._handle_disconnection(peer_id)
@@ -404,92 +439,117 @@ class ConnectionManager:
         self.disconnect_from_peer(peer_id)
 
     def _tcp_server_loop(self):
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            server_socket.bind(('', self._tcp_port))
+            server.bind(('', self._tcp_port))
         except OSError as e:
-            logger.error(f"TCP server bind failed on port {self._tcp_port}: {e}"); return
-        server_socket.listen(5); server_socket.settimeout(1.0)
+            logger.error(f"TCP server bind failed on port {self._tcp_port}: {e}")
+            return
+        server.listen(5)
+        server.settimeout(1.0)
         logger.info(f"TCP server listening on port {self._tcp_port}")
         while self._running:
             try:
-                client_socket, addr = server_socket.accept()
+                client, addr = server.accept()
                 logger.info(f"Accepted TCP connection from {addr}")
-                client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                client.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
                 try:
-                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
-                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
-                    client_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
-                except (AttributeError, OSError): pass
-                
-                handler_thread = threading.Thread(target=self._handle_tcp_receive, args=(None, client_socket))
-                handler_thread.daemon = True; handler_thread.start(); self._threads.append(handler_thread)
-            except socket.timeout: continue
+                    client.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
+                    client.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
+                    client.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
+                except (AttributeError, OSError):
+                    pass
+                t = threading.Thread(target=self._handle_tcp_receive, args=(None, client), daemon=True)
+                t.start()
+                self._threads.append(t)
+            except socket.timeout:
+                continue
             except Exception as e:
-                if self._running: logger.error(f"TCP Server error: {e}")
-        server_socket.close()
+                if self._running:
+                    logger.error(f"TCP Server error: {e}")
+        server.close()
 
     def _handle_tcp_receive(self, peer_id, client_socket):
         buffer = ""
         is_identified = peer_id is not None
+        client_socket.settimeout(None)  # blocking read
         while self._running:
             try:
                 data = client_socket.recv(4096)
-                if not data: break
-                buffer += data.decode('utf-8')
+                if not data:
+                    break
+                buffer += data.decode('utf-8', errors='ignore')
                 while '\n' in buffer:
                     message_json, buffer = buffer.split('\n', 1)
-                    if message_json:
-                        message = json.loads(message_json)
-                        if not is_identified:
-                            with self._lock:
-                                peer_id = message.get('drone_id')
-                                if peer_id:
-                                    self._clients[peer_id] = client_socket
-                                    # Use the get method to avoid a KeyError if the peer disappears
-                                    peer_full_info = self._discovered_peers.get(peer_id)
-                                    if peer_full_info:
-                                        self._peers[peer_id] = peer_full_info
-                                        logger.info(f"Identified and registered incoming TCP peer {peer_id}")
-                                    else:
-                                        logger.warning(f"Incoming TCP peer {peer_id} not in discovered list.")
-                                    is_identified = True
-                        self.message_queue.append(message)
-            except (ConnectionResetError, BrokenPipeError, OSError): break
-            except Exception as e: logger.error(f"Error handling TCP client {peer_id}: {e}"); break
-        if peer_id: self._handle_disconnection(peer_id)
-        client_socket.close()
+                    if not message_json:
+                        continue
+                    message = json.loads(message_json)
+                    if not is_identified:
+                        with self._lock:
+                            pid = message.get('drone_id')
+                            if pid:
+                                self._clients[pid] = client_socket
+                                peer_full = self._discovered_peers.get(pid)
+                                if peer_full:
+                                    self._peers[pid] = peer_full
+                                    logger.info(f"Identified and registered incoming TCP peer {pid}")
+                                else:
+                                    logger.warning(f"Incoming TCP peer {pid} not in discovered list.")
+                                is_identified = True
+                                peer_id = pid
+                    self.message_queue.append(message)
+            except socket.timeout:
+                # benign idle; keep connection
+                continue
+            except (ConnectionResetError, BrokenPipeError, OSError):
+                break
+            except Exception as e:
+                logger.error(f"Error handling TCP client {peer_id}: {e}")
+                break
+        if peer_id:
+            self._handle_disconnection(peer_id)
+        try:
+            client_socket.close()
+        except Exception:
+            pass
 
     def _udp_server_loop(self):
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        server_socket.bind(('', self._udp_port)); server_socket.settimeout(1.0)
+        server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        server.bind(('', self._udp_port))
+        server.settimeout(1.0)
         logger.info(f"UDP server listening on port {self._udp_port}")
         while self._running:
             try:
-                data, addr = server_socket.recvfrom(4096)
+                data, addr = server.recvfrom(4096)
                 try:
-                    message = json.loads(data.decode('utf-8'))
+                    message = json.loads(data.decode('utf-8', errors='ignore'))
                     self.message_queue.append(message)
-                except json.JSONDecodeError: logger.debug(f"Received non-JSON UDP data from {addr}, ignoring."); continue
-            except socket.timeout: continue
+                except json.JSONDecodeError:
+                    logger.debug(f"Received non-JSON UDP data from {addr}, ignoring.")
+            except socket.timeout:
+                continue
             except Exception as e:
-                if self._running: logger.error(f"UDP Server error: {e}")
-        server_socket.close()
-        
+                if self._running:
+                    logger.error(f"UDP Server error: {e}")
+        server.close()
+
     def _process_message_queue(self):
         while self._running:
             try:
                 message = self.message_queue.popleft()
                 self.on_message_received(message)
-            except IndexError: time.sleep(0.01)
-            except Exception as e: logger.error(f"Error processing message queue: {e}")
+            except IndexError:
+                time.sleep(0.01)
+            except Exception as e:
+                logger.error(f"Error processing message queue: {e}")
 
-# --- Main Controller Class ---
+# -------- Main Controller --------
 class DroneController:
-    def __init__(self, drone_id, interface, ssid, tcp_port, udp_port, should_setup_net):
+    def __init__(self, drone_id, interface, ssid, tcp_port, udp_port, should_setup_net, mode: str):
         self.drone_id = drone_id
         self.should_setup_net = should_setup_net
+        self.mode = mode  # 'test' or 'live'
         self.discovered_peers = {}
         self.tested_peers = set()
         self._app_running = True
@@ -501,8 +561,6 @@ class DroneController:
         self.discovery.adhoc_config["ssid"] = ssid
         self.discovery.on_peer_discovered = self._handle_peer_discovery
 
-        # Create a special dict view for the ConnectionManager to prevent thread-safety issues
-        # with the more complex peer dictionary structure in this class.
         class PeerInfoView:
             def __init__(self, full_peer_dict, lock):
                 self._source = full_peer_dict
@@ -515,56 +573,61 @@ class DroneController:
                 with self._lock:
                     return key in self._source
 
-        # The connection manager's lock will be used to protect the shared discovered_peers dict
+        self._discovered_lock = threading.Lock()
         self.connection_manager = ConnectionManager(
-            self.drone_id, 
-            self._handle_message_received, 
-            tcp_port, 
+            self.drone_id,
+            self._handle_message_received,
+            tcp_port,
             udp_port,
-            PeerInfoView(self.discovered_peers, threading.Lock())
+            PeerInfoView(self.discovered_peers, self._discovered_lock),
+            bind_iface=interface,
         )
-    
+
     def start(self):
         logger.info(f"--- Starting Drone Controller for {self.drone_id} ---")
-        
-        logger.info("Step 1a: This instance is setting up the Ad-Hoc Network Mode...")
+        logger.info("Step 1a: Setting up Ad-Hoc Network Mode...")
         if not self.discovery.setup_adhoc_network():
             logger.critical("Could not set up ad-hoc network. Aborting.")
-            self.discovery.teardown_adhoc_network(); return False
-        
-        logger.info("Step 1b: Assigning self IP address to the interface...")
+            self.discovery.teardown_adhoc_network()
+            return False
+
+        logger.info("Step 1b: Assigning self IP address...")
         if not self.discovery._assign_ip_address():
-            logger.critical("Could not assign IP address. Aborting."); return False
+            logger.critical("Could not assign IP address. Aborting.")
+            return False
 
         time.sleep(2)
-        logger.info("Step 2: Starting Connection Manager..."); self.connection_manager.start()
-        logger.info("Step 3: Starting Discovery Service..."); self.discovery.start_threads()
-        
+        logger.info("Step 2: Starting Connection Manager...")
+        self.connection_manager.start()
+        logger.info("Step 3: Starting Discovery Service...")
+        self.discovery.start_threads()
+
         logger.info("Step 4: Starting Application Logic Threads...")
         self._app_running = True
-        prune_thread = threading.Thread(target=self._prune_peers_loop)
-        recon_thread = threading.Thread(target=self._periodic_reconnection_check)
-        status_thread = threading.Thread(target=self._periodic_status_broadcast)
-        self._app_threads.extend([prune_thread, recon_thread, status_thread])
-        for t in self._app_threads: t.start()
+        for target in (self._prune_peers_loop, self._periodic_reconnection_check,
+                       self._periodic_status_broadcast, self._heartbeat_loop):
+            t = threading.Thread(target=target, daemon=True)
+            t.start()
+            self._app_threads.append(t)
 
-        logger.info("--- Controller is Running ---"); return True
+        logger.info("--- Controller is Running ---")
+        return True
 
     def stop(self):
         logger.info(f"--- Stopping Drone Controller for {self.drone_id} ---")
-        
         logger.info("Step 1: Stopping Application Logic Threads...")
         self._app_running = False
-        for thread in self._app_threads: thread.join(timeout=2.0)
+        for t in self._app_threads:
+            t.join(timeout=2.0)
 
-        logger.info("Step 2: Stopping Discovery Service..."); self.discovery.stop_threads()
-        logger.info("Step 3: Stopping Connection Manager..."); self.connection_manager.stop()
+        logger.info("Step 2: Stopping Discovery Service...")
+        self.discovery.stop_threads()
+        logger.info("Step 3: Stopping Connection Manager...")
+        self.connection_manager.stop()
 
-        if self.should_setup_net:
-            logger.info("This drone was run with --setup-net, tearing down the network.")
-            self.discovery.teardown_adhoc_network()
-        elif not self.discovered_peers:
-            logger.info("This drone is the last one in the swarm. Tearing down the network.")
+        # Teardown if we own it or if nobody else is around
+        if self.should_setup_net or not self.discovered_peers:
+            logger.info("Tearing down the ad-hoc network.")
             self.discovery.teardown_adhoc_network()
         else:
             logger.info(f"Leaving ad-hoc network running for {len(self.discovered_peers)} other peer(s).")
@@ -575,13 +638,12 @@ class DroneController:
         while self._app_running:
             time.sleep(10)
             now = time.time()
-            peers_to_prune = [pid for pid, data in list(self.discovered_peers.items()) if now - data['last_seen'] > self.PEER_TIMEOUT]
-            
+            peers_to_prune = [pid for pid, data in list(self.discovered_peers.items())
+                              if now - data['last_seen'] > self.PEER_TIMEOUT]
             for pid in peers_to_prune:
                 logger.info(f"Peer {pid} timed out. Removing from discovered list.")
                 with self.connection_manager._lock:
-                    if pid in self.discovered_peers:
-                        del self.discovered_peers[pid]
+                    self.discovered_peers.pop(pid, None)
                 self.connection_manager.disconnect_from_peer(pid)
 
     def _handle_peer_discovery(self, peer_info: dict):
@@ -589,83 +651,117 @@ class DroneController:
         with self.connection_manager._lock:
             self.discovered_peers[peer_id] = {'info': peer_info, 'last_seen': time.time()}
 
-        if peer_id not in self.tested_peers:
-            self.tested_peers.add(peer_id)
-            if self.drone_id > peer_id:
-                logger.info(f"New peer '{peer_id}' discovered. My ID is greater, so I will initiate the connection.")
-                sequence_thread = threading.Thread(target=self._run_comm_sequence, args=(peer_info,))
-                sequence_thread.daemon = True; sequence_thread.start()
-            else:
-                logger.info(f"New peer '{peer_id}' discovered. My ID is smaller, so I will wait for their connection.")
+        if self.mode == 'test':
+            if peer_id not in self.tested_peers:
+                self.tested_peers.add(peer_id)
+                if id_num(self.drone_id) > id_num(peer_id):
+                    logger.info(f"New peer '{peer_id}' discovered. Initiating test sequence.")
+                    t = threading.Thread(target=self._run_comm_sequence, args=(peer_info,), daemon=True)
+                    t.start()
+                else:
+                    logger.info(f"New peer '{peer_id}' discovered. Waiting for their connection.")
+        else:  # live
+            if id_num(self.drone_id) > id_num(peer_id):
+                self.connection_manager.connect_to_peer(peer_info, protocol="TCP")
 
     def _periodic_reconnection_check(self):
         while self._app_running:
             time.sleep(15)
             peers_to_check = list(self.discovered_peers.items())
-            connected_peers = self.connection_manager.get_connected_peers()
-            
+            connected = set(self.connection_manager.get_connected_peers())
             for peer_id, data in peers_to_check:
-                if peer_id not in connected_peers:
-                    if self.drone_id > peer_id:
-                        logger.info(f"Discovered peer '{peer_id}' is not connected. Attempting TCP connection.")
+                if peer_id not in connected:
+                    if id_num(self.drone_id) > id_num(peer_id):
+                        logger.info(f"Peer '{peer_id}' not connected. Attempting TCP connection.")
                         self.connection_manager.connect_to_peer(data['info'], protocol="TCP")
 
     def _periodic_status_broadcast(self):
-        package_number = 0
+        pkg = 0
         while self._app_running:
             time.sleep(10)
-            if not self._app_running: break
-            package_number += 1
-            status_message = {"protocol": "STATUS_BROADCAST", "package_number": package_number, "energy_level": 98.5, "position": {"x": 1.0, "y": 2.0, "z": 3.0}}
-            self.connection_manager.broadcast_message(status_message)
-            
+            if not self._app_running:
+                break
+            pkg += 1
+            msg = {
+                "protocol": "STATUS_BROADCAST",
+                "package_number": pkg,
+                "energy_level": 98.5,
+                "position": {"x": 1.0, "y": 2.0, "z": 3.0}
+            }
+            self.connection_manager.broadcast_message(msg)
+
+    def _heartbeat_loop(self):
+        while self._app_running:
+            time.sleep(5)
+            self.connection_manager.broadcast_message({"protocol": "PING", "ts": time.time()})
+
     def _handle_message_received(self, message):
         sender = message.get('drone_id', 'Unknown')
         if sender == self.drone_id:
             logger.debug(f"Ignoring own message: {json.dumps(message)}")
             return
-        protocol = message.get('protocol', 'N/A')
-        logger.info(f"RECEIVED from {sender} via {protocol}: {json.dumps(message)}")
+        proto = message.get('protocol', 'N/A')
+        if proto == "PING":
+            peer = self.connection_manager._peers.get(sender)
+            if peer:
+                self.connection_manager.send_message(peer, {"protocol": "PONG"})
+            return
+        logger.info(f"RECEIVED from {sender} via {proto}: {json.dumps(message)}")
 
     def _run_comm_sequence(self, peer_info: dict):
         peer_id = peer_info['id']
         try:
             logger.info(f"[{peer_id}] === Starting UDP Test ===")
-            self.connection_manager.connect_to_peer(peer_info, protocol="UDP"); time.sleep(1)
+            self.connection_manager.connect_to_peer(peer_info, protocol="UDP")
+            time.sleep(1)
             for i in range(3):
-                self.connection_manager.send_message(peer_info, {"protocol": "UDP_TEST", "count": i + 1}); time.sleep(0.5)
-            self.connection_manager.disconnect_from_peer(peer_id); time.sleep(1)
+                self.connection_manager.send_message(peer_info, {"protocol": "UDP_TEST", "count": i + 1})
+                time.sleep(0.5)
+            self.connection_manager.disconnect_from_peer(peer_id)
+            time.sleep(1)
+
             logger.info(f"[{peer_id}] === Starting TCP Test ===")
-            self.connection_manager.connect_to_peer(peer_info, protocol="TCP"); time.sleep(1)
+            self.connection_manager.connect_to_peer(peer_info, protocol="TCP")
+            time.sleep(1)
             for i in range(3):
-                self.connection_manager.send_message(peer_info, {"protocol": "TCP_TEST", "count": i + 1}); time.sleep(0.5)
+                self.connection_manager.send_message(peer_info, {"protocol": "TCP_TEST", "count": i + 1})
+                time.sleep(0.5)
             logger.info(f"[{peer_id}] === Initial communication test finished. TCP connection will be maintained. ===")
         except Exception as e:
             logger.error(f"Error in communication sequence with {peer_id}: {e}", exc_info=True)
 
-# --- Main Execution ---
+# -------- Entry Point --------
 def main():
     parser = argparse.ArgumentParser(description='Decentralized Standalone Ad-Hoc Drone Controller')
     parser.add_argument('--drone-id', required=True, help='Unique ID for this drone (e.g., drone_1)')
-    parser.add_argument('--interface', default='wlo1', help='Wireless interface for ad-hoc mode (e.g., wlan0)')
+    parser.add_argument('--interface', default=None, help='Wireless interface for ad-hoc mode (e.g., wlp1s0)')
     parser.add_argument('--ssid', default='drone-swarm-net', help='Ad-hoc network SSID')
     parser.add_argument('--tcp-port', type=int, required=True, help='TCP port for the connection manager')
     parser.add_argument('--udp-port', type=int, required=True, help='UDP port for the connection manager')
     parser.add_argument('--setup-net', action='store_true', help='Designate this drone as the master for network cleanup in local tests.')
+    parser.add_argument('--mode', choices=['test', 'live'], default='test',
+                        help='test = run UDP/TCP self-test; live = maintain persistent links')
     args = parser.parse_args()
 
+    iface = args.interface or detect_wifi_interface()
+    if not iface:
+        logger.critical("No Wi-Fi interface found. Pass --interface explicitly.")
+        return
+
     controller = DroneController(
-        args.drone_id, 
-        args.interface, 
-        args.ssid, 
-        args.tcp_port, 
+        args.drone_id,
+        iface,
+        args.ssid,
+        args.tcp_port,
         args.udp_port,
-        args.setup_net
+        args.setup_net,
+        args.mode
     )
-    
+
     try:
         if controller.start():
-            while True: time.sleep(1)
+            while True:
+                time.sleep(1)
     except KeyboardInterrupt:
         logger.info("Shutdown initiated by user.")
     finally:
