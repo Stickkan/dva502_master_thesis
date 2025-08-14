@@ -1,5 +1,6 @@
 # enhanced_standalone_controller_hybrid.py
 
+from html import parser
 import socket
 import threading
 import json
@@ -736,8 +737,10 @@ def main():
     parser.add_argument('--drone-id', required=True, help='Unique ID for this drone (e.g., drone_1)')
     parser.add_argument('--interface', default=None, help='Wireless interface for ad-hoc mode (e.g., wlp1s0)')
     parser.add_argument('--ssid', default='drone-swarm-net', help='Ad-hoc network SSID')
-    parser.add_argument('--tcp-port', type=int, required=True, help='TCP port for the connection manager')
-    parser.add_argument('--udp-port', type=int, required=True, help='UDP port for the connection manager')
+    parser.add_argument('--tcp-port', type=int, default=20000,
+                    help='TCP port for the connection manager (default: 20000)')
+    parser.add_argument('--udp-port', type=int, default=20001,
+                    help='UDP port for the connection manager (default: 20001)')
     parser.add_argument('--setup-net', action='store_true', help='Designate this drone as the master for network cleanup in local tests.')
     parser.add_argument('--mode', choices=['test', 'live'], default='test',
                         help='test = run UDP/TCP self-test; live = maintain persistent links')
