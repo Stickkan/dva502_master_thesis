@@ -1,5 +1,9 @@
-# mesh_standalone_controller.py
-# 802.11s mesh version (no IBSS/WEXT). Requires driver support for "mesh point" (see `iw list`).
+# universal_standalone_controller.py
+# Brings up peer-to-peer Wi-Fi using the best mode supported by the driver:
+# 1) 802.11s mesh (nl80211 "mesh point"),
+# 2) IBSS ad-hoc (nl80211),
+# 3) Legacy ad-hoc (WEXT/iwconfig).
+# Then runs UDP discovery + TCP/UDP comms (test/live).
 
 import socket
 import threading
@@ -41,19 +45,23 @@ def id_num(s: str) -> int:
     return int(d) if d else 0
 
 def ch_to_freq_mhz(ch: int) -> int:
-    # 2.4 GHz minimal mapping
     return {1: 2412, 6: 2437, 11: 2462}.get(int(ch), 2437)
 
 def mesh_supported() -> bool:
     try:
         txt = subprocess.check_output(['iw', 'list'], stderr=subprocess.DEVNULL).decode()
-        if 'Supported interface modes:' in txt and '* mesh point' in txt:
-            return True
+        return ('Supported interface modes:' in txt) and ('* mesh point' in txt)
     except Exception:
-        pass
-    return False
+        return False
 
-# ---------- Discovery (mesh bring-up / teardown + UDP peer discovery) ----------
+def ibss_supported() -> bool:
+    try:
+        txt = subprocess.check_output(['iw', 'list'], stderr=subprocess.DEVNULL).decode()
+        return ('Supported interface modes:' in txt) and ('* IBSS' in txt)
+    except Exception:
+        return False
+
+# ---------- Discovery (radio bring-up + UDP peer discovery) ----------
 class Discovery:
     def __init__(self, drone_id, tcp_port, udp_port, discovery_port=19999):
         self._drone_id = drone_id
@@ -63,20 +71,22 @@ class Discovery:
         self.on_peer_discovered = None
         self._running = True
 
-        self.mesh_cfg = {
-            "interface": "wlo1",      # overridden by controller
-            "meshid": "drone-swarm-mesh",  # we re-use --ssid arg to set this
-            "channel": 6,             # ch6 (2437 MHz)
+        self.cfg = {
+            "interface": "wlo1",            # overridden by controller
+            "ssid": "drone-swarm",          # meshid or IBSS SSID
+            "channel": 6,                   # 2.4 GHz channel (6=2437 MHz)
             "ip_base": "192.168.1.",
             "self_ip_ending": self._get_ip_ending_from_id(),
         }
         self._original_connection = self._get_active_connection()
         self._threads = []
 
-        # IP watchdog
+        # runtime info
+        self.mode_used = None   # 'mesh' | 'ibss' | 'adhoc'
         self._ip_guard_running = False
         self._ip_guard_thread = None
 
+    # ----- helpers -----
     def _get_ip_ending_from_id(self):
         try:
             return str(int(''.join(filter(str.isdigit, self._drone_id))))
@@ -87,7 +97,7 @@ class Discovery:
         logger.info(f"Running command: {' '.join(command)}")
         try:
             p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            _, stderr = p.communicate()
             if p.returncode != 0:
                 err = stderr.decode(errors='ignore').strip()
                 if err:
@@ -105,67 +115,117 @@ class Discovery:
                 stderr=subprocess.DEVNULL
             ).decode()
             for line in result.strip().split('\n'):
-                if not line.strip():
-                    continue
+                if not line.strip(): continue
                 name, dev = line.split(':')
-                if dev == self.mesh_cfg["interface"]:
+                if dev == self.cfg["interface"]:
                     return name
         except Exception:
             return None
         return None
 
-    def setup_mesh_network(self):
-        """Bring the NIC to mesh point (802.11s), join fixed frequency, verify link."""
-        if not mesh_supported():
-            logger.critical("This device/driver does not support 802.11s mesh ('* mesh point' missing in iw list).")
-            return False
-
-        logger.info("Configuring 802.11s mesh...")
-        iface  = self.mesh_cfg["interface"]
-        meshid = self.mesh_cfg["meshid"]
-        ch     = int(self.mesh_cfg.get("channel", 6))
-        freq   = str(ch_to_freq_mhz(ch))
-
-        # Clean slate; unmanaged and UP before join
-        self._run_command(['sudo', 'nmcli', 'dev', 'disconnect', iface])  # non-fatal
+    # ----- radio bring-up variants -----
+    def _prep_iface_unmanaged(self, iface):
+        # non-fatal disconnect/unmanage and clean slate; leave iface DOWN at end
+        self._run_command(['sudo', 'nmcli', 'dev', 'disconnect', iface])  # ok if already disconnected
         self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'])
         self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
         self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
 
-        # Set interface type to mesh point and bring it up
+    def setup_mesh(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"]); freq = str(ch_to_freq_mhz(ch))
+        logger.info("Configuring 802.11s mesh...")
+        self._prep_iface_unmanaged(iface)
         if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'mp']):
-            logger.critical(f"Failed to set {iface} to mesh point mode."); return False
+            logger.error("Driver refused mesh point mode."); return False
         if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
-            logger.critical(f"Failed to bring {iface} up."); return False
-
-        # Leave any previous mesh (ignore result) then join
+            logger.error(f"Failed to bring {iface} up."); return False
         subprocess.Popen(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'],
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        if not self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'join', meshid, 'freq', freq]):
-            logger.critical("Mesh join failed; aborting."); return False
-
-        # Verify mesh link
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'join', ssid, 'freq', freq]):
+            logger.error("Mesh join failed."); return False
         try:
             out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
-            if ('mesh' not in out) or (meshid not in out) or (f'freq: {freq}' not in out):
-                logger.critical("Not in expected mesh. iw link:\n%s", out); return False
+            if ('mesh' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
+                logger.error("Mesh link not as expected:\n%s", out); return False
         except Exception:
             pass
+        self.mode_used = 'mesh'; return True
 
-        return True
+    def setup_ibss(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"]); freq = str(ch_to_freq_mhz(ch))
+        logger.info("Configuring IBSS (nl80211)...")
+        self._prep_iface_unmanaged(iface)
+        if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
+            logger.error(f"Failed to bring {iface} up."); return False
+        subprocess.Popen(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'join', ssid, freq, 'fixed-freq', 'beacon-interval', '100']):
+            logger.error("IBSS join failed."); return False
+        try:
+            out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
+            if ('IBSS' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
+                logger.error("IBSS link not as expected:\n%s", out); return False
+        except Exception:
+            pass
+        self.mode_used = 'ibss'; return True
 
+    def setup_adhoc_wext(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"])
+        logger.info("Configuring legacy ad-hoc (WEXT/iwconfig)...")
+        self._prep_iface_unmanaged(iface)
+        ok = True
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'])
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'essid', ssid])
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'channel', str(ch)])
+        ok &= self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
+        if not ok:
+            logger.error("WEXT ad-hoc bring-up failed."); return False
+        time.sleep(0.3)
+        try:
+            out = subprocess.check_output(['iwconfig', iface], stderr=subprocess.DEVNULL).decode()
+            if ('Mode:Ad-Hoc' not in out) or (f'ESSID:"{ssid}"' not in out):
+                logger.error("WEXT state not as expected:\n%s", out); return False
+        except Exception:
+            pass
+        self.mode_used = 'adhoc'; return True
+
+    def setup_radio(self, preference: str = 'auto') -> bool:
+        """Bring up the best available peer-to-peer mode; set self.mode_used."""
+        iface = self.cfg["interface"]
+        if preference == 'mesh':
+            if not mesh_supported():
+                logger.critical("Mesh requested but not supported by driver."); return False
+            return self.setup_mesh()
+        if preference == 'ibss':
+            if ibss_supported():
+                return self.setup_ibss()
+            logger.warning("IBSS (nl80211) not supported, falling back to legacy ad-hoc.")
+            return self.setup_adhoc_wext()
+        if preference == 'adhoc':
+            return self.setup_adhoc_wext()
+
+        # auto
+        if mesh_supported():
+            if self.setup_mesh(): return True
+        if ibss_supported():
+            if self.setup_ibss(): return True
+        return self.setup_adhoc_wext()
+
+    # ----- IP handling / teardown -----
     def _assign_ip_address(self):
         logger.info("Assigning IP address...")
-        ip_address = f"{self.mesh_cfg['ip_base']}{self.mesh_cfg['self_ip_ending']}/24"
-        iface = self.mesh_cfg["interface"]
+        ip_address = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}/24"
+        iface = self.cfg["interface"]
         if not self._run_command(['sudo', 'ip', 'addr', 'add', ip_address, 'dev', iface]):
             logger.error(f"Failed to assign IP {ip_address} to {iface}."); return False
         logger.info(f"Assigned IP {ip_address} to {iface}."); return True
 
     def _ip_guard(self):
-        """Re-assert our /24 address if a driver/NM glitch drops it."""
-        iface = self.mesh_cfg["interface"]
-        own_ip = f"{self.mesh_cfg['ip_base']}{self.mesh_cfg['self_ip_ending']}"
+        iface = self.cfg["interface"]
+        own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
         cidr = f"{own_ip}/24"
         while self._ip_guard_running:
             time.sleep(3)
@@ -185,14 +245,12 @@ class Discovery:
         t2 = threading.Thread(target=self._listen_for_peers, daemon=True)
         self._threads.extend([t1, t2])
         t1.start(); t2.start()
-        # start IP guard
         self._ip_guard_running = True
         self._ip_guard_thread = threading.Thread(target=self._ip_guard, daemon=True)
         self._ip_guard_thread.start()
 
     def stop_threads(self):
-        if not self._running:
-            return
+        if not self._running: return
         logger.info("Stopping discovery threads...")
         self._running = False
         try:
@@ -200,22 +258,24 @@ class Discovery:
                 s.sendto(b'stop', ('127.0.0.1', self._port))
         except Exception:
             pass
-        for t in self._threads:
-            t.join(timeout=2.0)
+        for t in self._threads: t.join(timeout=2.0)
         self._threads.clear()
-        # stop IP guard
         self._ip_guard_running = False
-        if self._ip_guard_thread:
-            self._ip_guard_thread.join(timeout=1.0)
+        if self._ip_guard_thread: self._ip_guard_thread.join(timeout=1.0)
         logger.info("Discovery threads stopped.")
 
-    def teardown_mesh_network(self):
-        """Return NIC to managed Wi-Fi and restore previous connection."""
+    def teardown_radio(self):
+        """Restore NIC to managed Wi-Fi and try to reconnect to the previous AP."""
         logger.info("Restoring original network state...")
-        iface = self.mesh_cfg["interface"]
-        # Leave mesh (best-effort), flush, set type back to managed, hand back to NM
-        subprocess.Popen(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        iface = self.cfg["interface"]
+        # best-effort leave
+        if self.mode_used == 'mesh':
+            subprocess.Popen(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        elif self.mode_used == 'ibss':
+            subprocess.Popen(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        # common cleanup
         self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
         self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
         if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed']):
@@ -232,9 +292,10 @@ class Discovery:
         else:
             logger.warning("No known previous connection to restore.")
 
+    # ----- UDP discovery -----
     def _broadcast_presence(self):
-        iface = self.mesh_cfg["interface"]
-        own_ip = f"{self.mesh_cfg['ip_base']}{self.mesh_cfg['self_ip_ending']}"
+        iface = self.cfg["interface"]
+        own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
         bcast_ip = str(ipaddress.IPv4Interface(f"{own_ip}/24").network.broadcast_address)
         payload = {"id": self._drone_id, "ip": own_ip,
                    "tcp_port": self._tcp_port, "udp_port": self._udp_port}
@@ -247,7 +308,7 @@ class Discovery:
         sock_limited.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         limited_ok = True
         try:
-            sock_limited.bind((own_ip, 0))  # route for 255.255.255.255
+            sock_limited.bind((own_ip, 0))
         except OSError as e:
             logger.debug(f"Limited-broadcast bind skipped ({e}); subnet only.")
             limited_ok = False
@@ -374,10 +435,9 @@ class ConnectionManager:
                             sock.setsockopt(socket.SOL_SOCKET, 25, self._bind_iface.encode())  # SO_BINDTODEVICE
                     except OSError:
                         pass
-                    sock.settimeout(3.0)   # connect timeout only
+                    sock.settimeout(3.0)
                     sock.connect((peer_info['ip'], peer_info['tcp_port']))
-                    sock.settimeout(None)  # blocking
-                    # identify immediately
+                    sock.settimeout(None)
                     hello = {"protocol": "HELLO", "drone_id": self._drone_id}
                     sock.sendall((json.dumps(hello) + "\n").encode("utf-8"))
                     t = threading.Thread(target=self._handle_tcp_receive, args=(peer_id, sock), daemon=True)
@@ -514,7 +574,8 @@ class ConnectionManager:
 
 # ---------- Controller ----------
 class DroneController:
-    def __init__(self, drone_id, interface, meshid, tcp_port, udp_port, should_setup_net, mode: str, channel: int):
+    def __init__(self, drone_id, interface, ssid, tcp_port, udp_port, should_setup_net,
+                 mode: str, channel: int, radio_mode: str):
         self.drone_id = drone_id
         self.should_setup_net = should_setup_net
         self.mode = mode  # 'test' or 'live'
@@ -525,10 +586,11 @@ class DroneController:
         self.PEER_TIMEOUT = 20
 
         self.discovery = Discovery(drone_id, tcp_port, udp_port)
-        self.discovery.mesh_cfg["interface"] = interface
-        self.discovery.mesh_cfg["meshid"] = meshid  # we accept --ssid as meshid
-        self.discovery.mesh_cfg["channel"] = channel
+        self.discovery.cfg["interface"] = interface
+        self.discovery.cfg["ssid"] = ssid
+        self.discovery.cfg["channel"] = channel
         self.discovery.on_peer_discovered = self._handle_peer_discovery
+        self.radio_mode = radio_mode
 
         class PeerInfoView:
             def __init__(self, full_peer_dict, lock):
@@ -542,20 +604,18 @@ class DroneController:
 
         self._discovered_lock = threading.Lock()
         self.connection_manager = ConnectionManager(
-            self.drone_id,
-            self._handle_message_received,
-            tcp_port,
-            udp_port,
+            self.drone_id, self._handle_message_received,
+            tcp_port, udp_port,
             PeerInfoView(self.discovered_peers, self._discovered_lock),
             bind_iface=interface,
         )
 
     def start(self):
         logger.info(f"--- Starting Drone Controller for {self.drone_id} ---")
-        logger.info("Step 1a: Bringing up mesh...")
-        if not self.discovery.setup_mesh_network():
-            logger.critical("Could not set up mesh. Aborting.")
-            self.discovery.teardown_mesh_network(); return False
+        logger.info("Step 1a: Bringing up peer-to-peer radio...")
+        if not self.discovery.setup_radio(self.radio_mode):
+            logger.critical("Radio bring-up failed. Aborting.")
+            self.discovery.teardown_radio(); return False
 
         logger.info("Step 1b: Assigning self IP address...")
         if not self.discovery._assign_ip_address():
@@ -571,7 +631,8 @@ class DroneController:
                        self._periodic_status_broadcast, self._heartbeat_loop):
             t = threading.Thread(target=target, daemon=True); t.start(); self._app_threads.append(t)
 
-        logger.info("--- Controller is Running ---"); return True
+        logger.info(f"--- Controller is Running (mode_used={self.discovery.mode_used}) ---")
+        return True
 
     def stop(self):
         logger.info(f"--- Stopping Drone Controller for {self.drone_id} ---")
@@ -583,9 +644,9 @@ class DroneController:
         logger.info("Step 3: Stopping Connection Manager..."); self.connection_manager.stop()
 
         if self.should_setup_net or not self.discovered_peers:
-            logger.info("Tearing down the mesh."); self.discovery.teardown_mesh_network()
+            logger.info("Tearing down radio."); self.discovery.teardown_radio()
         else:
-            logger.info(f"Leaving mesh running for {len(self.discovered_peers)} other peer(s).")
+            logger.info(f"Leaving radio up for {len(self.discovered_peers)} other peer(s).")
 
         logger.info("--- Controller Stopped ---")
 
@@ -677,26 +738,27 @@ class DroneController:
 
 # ---------- Entry ----------
 def main():
-    parser = argparse.ArgumentParser(description='Decentralized Standalone Mesh Drone Controller (802.11s)')
+    parser = argparse.ArgumentParser(description='Universal Standalone Drone Controller (mesh/ibss/adhoc auto)')
     parser.add_argument('--drone-id', required=True, help='Unique ID for this drone (e.g., drone_1)')
     parser.add_argument('--interface', default=None, help='Wireless interface (e.g., wlp1s0). Auto-detected if omitted.')
-    parser.add_argument('--ssid', default='drone-swarm-mesh', help='Mesh ID (used as 802.11s meshid)')
+    parser.add_argument('--ssid', default='drone-swarm', help='Mesh ID or IBSS SSID')
     parser.add_argument('--channel', type=int, default=6, help='2.4 GHz channel (default: 6)')
     parser.add_argument('--tcp-port', type=int, default=20000, help='TCP port (default: 20000)')
     parser.add_argument('--udp-port', type=int, default=20001, help='UDP port (default: 20001)')
-    parser.add_argument('--setup-net', action='store_true', help='Also tear down mesh on exit.')
+    parser.add_argument('--setup-net', action='store_true', help='Restore managed Wi-Fi on exit.')
     parser.add_argument('--mode', choices=['test', 'live'], default='test',
                         help='test = run UDP/TCP self-test; live = persistent links')
+    parser.add_argument('--radio-mode', choices=['auto','mesh','ibss','adhoc'], default='auto',
+                        help='Preferred radio mode. auto=try mesh→ibss→adhoc (WEXT).')
     args = parser.parse_args()
 
     iface = args.interface or detect_wifi_interface()
     if not iface:
         logger.critical("No Wi-Fi interface found. Pass --interface explicitly."); return
-    if not mesh_supported():
-        logger.critical("802.11s mesh not supported by this driver (no '* mesh point' in `iw list`)."); return
 
     controller = DroneController(
-        args.drone_id, iface, args.ssid, args.tcp_port, args.udp_port, args.setup_net, args.mode, args.channel
+        args.drone_id, iface, args.ssid, args.tcp_port, args.udp_port,
+        args.setup_net, args.mode, args.channel, args.radio_mode
     )
 
     try:
