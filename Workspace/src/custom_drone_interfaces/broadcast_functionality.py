@@ -1,4 +1,4 @@
-# broadcast_only_controller.py — ad-hoc (IBSS) bring-up + stateless broadcast TX/RX with packet number, ms timestamps, and GPS
+# broadcast_only_controller.py — ad-hoc (IBSS) bring-up + stateless broadcast TX/RX with packet number, ms timestamps, GPS
 
 import socket
 import json
@@ -16,7 +16,8 @@ DEFAULT_PORT = 29999
 DEFAULT_HZ = 1.0
 
 # --- Logging ---
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Default to DEBUG as requested (prints TX/RX and system actions)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 log = logging.getLogger("BroadcastOnly")
 
 # --- Time helper (ms) ---
@@ -25,9 +26,12 @@ now_ms = lambda: int(time.time() * 1000)
 # --- Shell helpers ---
 
 def run(cmd: list[str], ignore_rc: bool = False) -> bool:
+    log.debug(f"RUN: {' '.join(cmd)}")
     try:
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        _, err = p.communicate()
+        out, err = p.communicate()
+        if out:
+            log.debug(out.strip())
         if p.returncode != 0 and not ignore_rc:
             log.error(f"cmd failed ({p.returncode}): {' '.join(cmd)} :: {err.strip()}")
             return False
@@ -72,6 +76,43 @@ def compute_broadcast_from_ip(ip_cidr: str) -> str:
     iface = ipaddress.IPv4Interface(ip_cidr)
     return str(iface.network.broadcast_address)
 
+# --- NetworkManager helpers (save & restore previous connection) ---
+
+def get_active_connection_on_device(interface: str) -> Optional[str]:
+    """Return active connection NAME for the given device, if any."""
+    try:
+        # Example line: "MyWiFiSSID:wlo1"
+        p = subprocess.Popen([
+            'nmcli', '-t', '-f', 'NAME,DEVICE', 'connection', 'show', '--active'
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        out, err = p.communicate(timeout=5)
+        if p.returncode != 0:
+            log.debug(f"nmcli active con err: {err.strip()}")
+            return None
+        for line in out.strip().splitlines():
+            if not line:
+                continue
+            name, dev = (line.split(':', 1) + [None])[:2]
+            if dev == interface:
+                log.info(f"Detected active connection on {interface}: '{name}'")
+                return name
+    except Exception as e:
+        log.debug(f"get_active_connection_on_device failed: {e}")
+    return None
+
+
+def reconnect_previous_connection(interface: str, conn_name: Optional[str]) -> None:
+    if not conn_name:
+        log.info("No previous connection name recorded; skipping reconnect.")
+        return
+    log.info(f"Attempting to reconnect to previous network: '{conn_name}' on {interface}")
+    # Give NetworkManager control back and try to bring the connection up
+    run(['sudo', 'nmcli', 'dev', 'set', interface, 'managed', 'yes'], ignore_rc=True)
+    # Sometimes a reconnect works only after down/up
+    run(['sudo', 'nmcli', 'dev', 'disconnect', interface], ignore_rc=True)
+    # Bring it up by connection name
+    run(['sudo', 'nmcli', 'connection', 'up', 'id', conn_name], ignore_rc=True)
+
 # --- Ad-hoc setup/teardown ---
 
 def setup_adhoc(interface: str, ssid: str, channel: int, ip_cidr: str) -> bool:
@@ -91,14 +132,17 @@ def setup_adhoc(interface: str, ssid: str, channel: int, ip_cidr: str) -> bool:
     for cmd in steps:
         if not run(cmd, ignore_rc=('killall' in cmd)):
             return False
-        time.sleep(0.2)
+        time.sleep(0.15)
+    # Try to disable power saving where possible
     run(['sudo', 'iw', 'dev', interface, 'set', 'power_save', 'off'], ignore_rc=True)
     run(['sudo', 'iwconfig', interface, 'power', 'off'], ignore_rc=True)
     return True
 
+
 def teardown_adhoc(interface: str):
     log.info("Tearing down IBSS and returning control to NetworkManager…")
     run(['sudo', 'ip', 'addr', 'flush', 'dev', interface], ignore_rc=True)
+    # Give NM control back; actual reconnect happens in reconnect_previous_connection()
     run(['sudo', 'nmcli', 'dev', 'set', interface, 'managed', 'yes'], ignore_rc=True)
 
 # --- Broadcast service ---
@@ -135,7 +179,7 @@ class BroadcastService:
                     last = now
                     self._tx_once()
         except KeyboardInterrupt:
-            log.info("Keyboard interrupt detected, shutting down...")
+            log.info("Keyboard interrupt detected, shutting down…")
             self.close()
             raise
         finally:
@@ -158,9 +202,12 @@ class BroadcastService:
             "position": get_gps_position(),
         }
         msg = json.dumps(payload).encode('utf-8')
+        # Print all transmitted packets in DEBUG mode
+        log.debug(f"TX {json.dumps(payload)}")
         try:
             self.tx_sock.sendto(msg, (self.subnet_broadcast, self.port))
         except OSError:
+            # Fallback to global broadcast
             self.tx_sock.sendto(msg, ("255.255.255.255", self.port))
 
     def _handle_rx(self, data: bytes):
@@ -185,10 +232,16 @@ def main():
     parser.add_argument('--interface', required=True, help='Name of the network card, e.g., wlo1')
     args = parser.parse_args()
 
+    # Save currently active connection for this interface BEFORE tearing it down
+    prev_connection = get_active_connection_on_device(args.interface)
+
+    # Deterministic per-drone IP in 192.168.88.0/24
     last_octet = abs(hash(args.drone_id)) % 200 + 20
     ip_cidr = f"192.168.88.{last_octet}/24"
 
     if not setup_adhoc(args.interface, DEFAULT_SSID, DEFAULT_CHANNEL, ip_cidr):
+        # If setup fails, try to restore previous network
+        reconnect_previous_connection(args.interface, prev_connection)
         return
 
     svc = BroadcastService(drone_id=args.drone_id, interface=args.interface, port=DEFAULT_PORT, hz=DEFAULT_HZ, ip_cidr=ip_cidr)
@@ -199,6 +252,7 @@ def main():
     finally:
         svc.close()
         teardown_adhoc(args.interface)
+        reconnect_previous_connection(args.interface, prev_connection)
 
 if __name__ == '__main__':
     main()
