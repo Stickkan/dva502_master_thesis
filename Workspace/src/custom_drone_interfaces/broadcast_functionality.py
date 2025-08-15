@@ -134,6 +134,10 @@ class BroadcastService:
                 if now - last >= self.period:
                     last = now
                     self._tx_once()
+        except KeyboardInterrupt:
+            log.info("Keyboard interrupt detected, shutting down...")
+            self.close()
+            raise
         finally:
             self.close()
 
@@ -177,11 +181,10 @@ class BroadcastService:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--drone-id', required=True)
-    parser.add_argument('--interface', required=True)
+    parser.add_argument('--drone-id', required=True, help='Unique ID for this drone')
+    parser.add_argument('--interface', required=True, help='Name of the network card, e.g., wlo1')
     args = parser.parse_args()
 
-    # Derive defaults from drone-id
     last_octet = abs(hash(args.drone_id)) % 200 + 20
     ip_cidr = f"192.168.88.{last_octet}/24"
 
