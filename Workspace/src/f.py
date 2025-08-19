@@ -1,4 +1,4 @@
-# universal_standalone_controller.py
+# universal_standalone_controller.py (hardened)
 # Brings up peer-to-peer Wi-Fi using the best mode supported by the driver:
 # 1) 802.11s mesh (nl80211 "mesh point"),
 # 2) IBSS ad-hoc (nl80211),
@@ -19,7 +19,14 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("DroneController")
 
-# ---------- Utils ----------
+# ---------- Helpers / RF tables ----------
+CHAN_TO_FREQ_24 = {
+    1:2412, 2:2417, 3:2422, 4:2427, 5:2432, 6:2437, 7:2442,
+    8:2447, 9:2452, 10:2457, 11:2462, 12:2467, 13:2472
+}
+# Limit 5 GHz to commonly IBSS-initiable (U-NII-3) by default
+CHAN_TO_FREQ_5 = {149:5745, 153:5765, 157:5785, 161:5805, 165:5825}
+
 def detect_wifi_interface() -> str | None:
     try:
         out = subprocess.check_output(['iw', 'dev'], stderr=subprocess.DEVNULL).decode()
@@ -45,7 +52,11 @@ def id_num(s: str) -> int:
     return int(d) if d else 0
 
 def ch_to_freq_mhz(ch: int) -> int:
-    return {1: 2412, 6: 2437, 11: 2462}.get(int(ch), 2437)
+    """Return frequency MHz for a given channel. Defaults to 2437 (ch 6) if unknown."""
+    ch = int(ch)
+    if ch in CHAN_TO_FREQ_24: return CHAN_TO_FREQ_24[ch]
+    if ch in CHAN_TO_FREQ_5:  return CHAN_TO_FREQ_5[ch]
+    return 2437  # safe default
 
 def mesh_supported() -> bool:
     try:
@@ -74,15 +85,15 @@ class Discovery:
         self.cfg = {
             "interface": "wlo1",            # overridden by controller
             "ssid": "drone-swarm",          # meshid or IBSS SSID
-            "channel": 6,                   # 2.4 GHz channel (6=2437 MHz)
+            "channel": 6,                   # channel; mapping handles freq
             "ip_base": "192.168.1.",
             "self_ip_ending": self._get_ip_ending_from_id(),
         }
         self._original_connection = self._get_active_connection()
         self._threads = []
-
-        # runtime info
         self.mode_used = None   # 'mesh' | 'ibss' | 'adhoc'
+
+        # IP guard is kept but disabled by default (it can fight normal transitions)
         self._ip_guard_running = False
         self._ip_guard_thread = None
 
@@ -125,9 +136,13 @@ class Discovery:
 
     # ----- radio bring-up variants -----
     def _prep_iface_unmanaged(self, iface):
-        # non-fatal disconnect/unmanage and clean slate; leave iface DOWN at end
-        self._run_command(['sudo', 'nmcli', 'dev', 'disconnect', iface])  # ok if already disconnected
+        # Best-effort neutralize NM/supplicant and clear state; leave iface DOWN
+        self._run_command(['sudo', 'nmcli', 'dev', 'disconnect', iface])
         self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'])
+        self._run_command(['sudo', 'killall', 'wpa_supplicant'])
+        # Leave any prior roles
+        self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'])
         self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
         self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
 
@@ -144,6 +159,11 @@ class Discovery:
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         if not self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'join', ssid, 'freq', freq]):
             logger.error("Mesh join failed."); return False
+
+        # Try to disable power saving (best effort)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
+
         try:
             out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
             if ('mesh' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
@@ -157,12 +177,23 @@ class Discovery:
         ch     = int(self.cfg["channel"]); freq = str(ch_to_freq_mhz(ch))
         logger.info("Configuring IBSS (nl80211)...")
         self._prep_iface_unmanaged(iface)
+
+        # Ensure we're in the correct iftype
+        self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'ibss'])
+
         if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
             logger.error(f"Failed to bring {iface} up."); return False
-        subprocess.Popen(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'],
-                         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        if not self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'join', ssid, freq, 'fixed-freq', 'beacon-interval', '100']):
+
+        # Prefer HT20 for widest compatibility; fixed-freq optional
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'join', ssid, freq, 'HT20']):
             logger.error("IBSS join failed."); return False
+
+        # Power save off (matches stable broadcaster)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
+
         try:
             out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
             if ('IBSS' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
@@ -183,6 +214,11 @@ class Discovery:
         ok &= self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
         if not ok:
             logger.error("WEXT ad-hoc bring-up failed."); return False
+
+        # Power save off (best effort)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
+
         time.sleep(0.3)
         try:
             out = subprocess.check_output(['iwconfig', iface], stderr=subprocess.DEVNULL).decode()
@@ -224,17 +260,24 @@ class Discovery:
         logger.info(f"Assigned IP {ip_address} to {iface}."); return True
 
     def _ip_guard(self):
+        """Disabled by default to avoid fighting normal transitions."""
         iface = self.cfg["interface"]
         own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
         cidr = f"{own_ip}/24"
+        miss_count = 0
         while self._ip_guard_running:
             time.sleep(3)
             try:
                 out = subprocess.check_output(['ip', '-br', 'addr', 'show', iface],
                                               stderr=subprocess.DEVNULL).decode()
                 if own_ip not in out:
-                    logger.warning("IP vanished from %s; re-adding %s", iface, cidr)
-                    self._run_command(['sudo', 'ip', 'addr', 'add', cidr, 'dev', iface])
+                    miss_count += 1
+                    if miss_count >= 3:
+                        logger.warning("IP vanished from %s; re-adding %s", iface, cidr)
+                        self._run_command(['sudo', 'ip', 'addr', 'add', cidr, 'dev', iface])
+                        miss_count = 0
+                else:
+                    miss_count = 0
             except Exception:
                 pass
 
@@ -245,9 +288,7 @@ class Discovery:
         t2 = threading.Thread(target=self._listen_for_peers, daemon=True)
         self._threads.extend([t1, t2])
         t1.start(); t2.start()
-        self._ip_guard_running = True
-        self._ip_guard_thread = threading.Thread(target=self._ip_guard, daemon=True)
-        self._ip_guard_thread.start()
+        # IP guard intentionally not started by default
 
     def stop_threads(self):
         if not self._running: return
@@ -281,8 +322,7 @@ class Discovery:
         if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed']):
             self._run_command(['sudo', 'iwconfig', iface, 'mode', 'managed'])
         self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'yes'])
-        self._run_command(['sudo', 'systemctl', 'restart', 'NetworkManager'])
-        time.sleep(3)
+        # do NOT restart NetworkManager mid-run; just bring it back up cleanly
         self._run_command(['nmcli', 'radio', 'wifi', 'on'])
         self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
         time.sleep(2)
@@ -294,7 +334,6 @@ class Discovery:
 
     # ----- UDP discovery -----
     def _broadcast_presence(self):
-        iface = self.cfg["interface"]
         own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
         bcast_ip = str(ipaddress.IPv4Interface(f"{own_ip}/24").network.broadcast_address)
         payload = {"id": self._drone_id, "ip": own_ip,
@@ -304,29 +343,15 @@ class Discovery:
         sock_subnet = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock_subnet.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        sock_limited = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock_limited.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        limited_ok = True
-        try:
-            sock_limited.bind((own_ip, 0))
-        except OSError as e:
-            logger.debug(f"Limited-broadcast bind skipped ({e}); subnet only.")
-            limited_ok = False
-
         try:
             while self._running:
                 try:
                     sock_subnet.sendto(msg, (bcast_ip, self._port))
                 except OSError as e:
                     logger.error(f"Subnet broadcast to {bcast_ip}:{self._port} failed: {e}")
-                if limited_ok:
-                    try:
-                        sock_limited.sendto(msg, ("255.255.255.255", self._port))
-                    except OSError as e:
-                        logger.debug(f"Limited broadcast failed: {e}")
                 time.sleep(1)
         finally:
-            sock_subnet.close(); sock_limited.close()
+            sock_subnet.close()
 
     def _listen_for_peers(self):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
@@ -365,16 +390,7 @@ class ConnectionManager:
         self._peers = {}
         self.message_queue = deque()
         self._lock = threading.Lock()
-        self._bind_iface = bind_iface
-
-    def _route_ok(self, iface: str, ip: str) -> bool:
-        if not iface: return True
-        try:
-            subprocess.check_output(['ip', 'route', 'get', ip, 'oif', iface],
-                                    stderr=subprocess.DEVNULL)
-            return True
-        except subprocess.CalledProcessError:
-            return False
+        self._bind_iface = bind_iface  # retained for compatibility; not used to bind sockets
 
     def start(self):
         logger.info(f"Starting connection manager for {self._drone_id}")
@@ -419,21 +435,14 @@ class ConnectionManager:
             logger.info(f"Connecting to {peer_id} at {peer_info['ip']} via {protocol}...")
             try:
                 if protocol == "TCP":
-                    if not self._route_ok(self._bind_iface, peer_info['ip']):
-                        logger.error(f"No connected route to {peer_info['ip']} via {self._bind_iface}; skipping connect.")
-                        return
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+                    # TCP keepalive knobs (best-effort)
                     try:
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 5)
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
                         sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 3)
                     except (AttributeError, OSError):
-                        pass
-                    try:
-                        if self._bind_iface:
-                            sock.setsockopt(socket.SOL_SOCKET, 25, self._bind_iface.encode())  # SO_BINDTODEVICE
-                    except OSError:
                         pass
                     sock.settimeout(3.0)
                     sock.connect((peer_info['ip'], peer_info['tcp_port']))
@@ -444,11 +453,6 @@ class ConnectionManager:
                     t.start(); self._threads.append(t)
                 else:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                    try:
-                        if self._bind_iface:
-                            sock.setsockopt(socket.SOL_SOCKET, 25, self._bind_iface.encode())
-                    except OSError:
-                        pass
                 self._clients[peer_id] = sock
                 self._peers[peer_id] = peer_info
                 logger.info(f"Connected to {peer_id} via {protocol}.")
@@ -654,17 +658,19 @@ class DroneController:
         while self._app_running:
             time.sleep(10)
             now = time.time()
-            peers_to_prune = [pid for pid, data in list(self.discovered_peers.items())
-                              if now - data['last_seen'] > self.PEER_TIMEOUT]
-            for pid in peers_to_prune:
-                logger.info(f"Peer {pid} timed out. Removing from discovered list.")
-                with self.connection_manager._lock:
+            with self._discovered_lock:
+                peers_to_prune = [pid for pid, data in list(self.discovered_peers.items())
+                                  if now - data['last_seen'] > self.PEER_TIMEOUT]
+                for pid in peers_to_prune:
+                    logger.info(f"Peer {pid} timed out. Removing from discovered list.")
                     self.discovered_peers.pop(pid, None)
+            # also disconnect pruned peers
+            for pid in peers_to_prune:
                 self.connection_manager.disconnect_from_peer(pid)
 
     def _handle_peer_discovery(self, peer_info: dict):
         peer_id = peer_info['id']
-        with self.connection_manager._lock:
+        with self._discovered_lock:
             self.discovered_peers[peer_id] = {'info': peer_info, 'last_seen': time.time()}
 
         if self.mode == 'test':
@@ -683,7 +689,8 @@ class DroneController:
     def _periodic_reconnection_check(self):
         while self._app_running:
             time.sleep(15)
-            peers_to_check = list(self.discovered_peers.items())
+            with self._discovered_lock:
+                peers_to_check = list(self.discovered_peers.items())
             connected = set(self.connection_manager.get_connected_peers())
             for peer_id, data in peers_to_check:
                 if peer_id not in connected:
@@ -742,7 +749,7 @@ def main():
     parser.add_argument('--drone-id', required=True, help='Unique ID for this drone (e.g., drone_1)')
     parser.add_argument('--interface', default=None, help='Wireless interface (e.g., wlp1s0). Auto-detected if omitted.')
     parser.add_argument('--ssid', default='drone-swarm', help='Mesh ID or IBSS SSID')
-    parser.add_argument('--channel', type=int, default=6, help='2.4 GHz channel (default: 6)')
+    parser.add_argument('--channel', type=int, default=6, help='Channel (2.4 GHz typical; U-NII-3 only for 5 GHz IBSS).')
     parser.add_argument('--tcp-port', type=int, default=20000, help='TCP port (default: 20000)')
     parser.add_argument('--udp-port', type=int, default=20001, help='UDP port (default: 20001)')
     parser.add_argument('--setup-net', action='store_true', help='Restore managed Wi-Fi on exit.')
