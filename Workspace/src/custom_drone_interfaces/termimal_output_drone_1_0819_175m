@@ -1,0 +1,180 @@
+2025-08-19 10:05:13,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 1, "tx_ms": 1755590713365, "position": null}
+2025-08-19 10:05:14,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 2, "tx_ms": 1755590714366, "position": null}
+2025-08-19 10:05:15,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 3, "tx_ms": 1755590715365, "position": null}
+2025-08-19 10:05:16,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 4, "tx_ms": 1755590716366, "position": null}
+2025-08-19 10:05:17,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 5, "tx_ms": 1755590717365, "position": null}
+2025-08-19 10:05:18,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 6, "tx_ms": 1755590718365, "position": null}
+2025-08-19 10:05:19,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 7, "tx_ms": 1755590719365, "position": null}
+2025-08-19 10:05:20,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 8, "tx_ms": 1755590720365, "position": null}
+2025-08-19 10:05:21,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 9, "tx_ms": 1755590721365, "position": null}
+2025-08-19 10:05:22,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 10, "tx_ms": 1755590722365, "position": null}
+2025-08-19 10:05:23,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 11, "tx_ms": 1755590723365, "position": null}
+2025-08-19 10:05:24,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 12, "tx_ms": 1755590724365, "position": null}
+2025-08-19 10:05:25,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 13, "tx_ms": 1755590725365, "position": null}
+2025-08-19 10:05:26,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 14, "tx_ms": 1755590726365, "position": null}
+2025-08-19 10:05:27,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 15, "tx_ms": 1755590727365, "position": null}
+2025-08-19 10:05:28,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 16, "tx_ms": 1755590728365, "position": null}
+2025-08-19 10:05:29,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 17, "tx_ms": 1755590729365, "position": null}
+2025-08-19 10:05:30,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 18, "tx_ms": 1755590730365, "position": null}
+2025-08-19 10:05:31,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 19, "tx_ms": 1755590731366, "position": null}
+2025-08-19 10:05:32,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 20, "tx_ms": 1755590732366, "position": null}
+2025-08-19 10:05:33,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 21, "tx_ms": 1755590733365, "position": null}
+2025-08-19 10:05:34,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 22, "tx_ms": 1755590734365, "position": null}
+2025-08-19 10:05:35,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 23, "tx_ms": 1755590735365, "position": null}
+2025-08-19 10:05:36,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 24, "tx_ms": 1755590736365, "position": null}
+2025-08-19 10:05:37,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 25, "tx_ms": 1755590737365, "position": null}
+2025-08-19 10:05:38,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 26, "tx_ms": 1755590738365, "position": null}
+2025-08-19 10:05:38,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 26, "tx_ms": 1755590738610, "position": null, "rx_ms": 1755590738607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:39,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 27, "tx_ms": 1755590739365, "position": null}
+2025-08-19 10:05:39,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 27, "tx_ms": 1755590739610, "position": null, "rx_ms": 1755590739607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:40,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 28, "tx_ms": 1755590740365, "position": null}
+2025-08-19 10:05:40,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 28, "tx_ms": 1755590740610, "position": null, "rx_ms": 1755590740607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:41,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 29, "tx_ms": 1755590741365, "position": null}
+2025-08-19 10:05:41,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 29, "tx_ms": 1755590741610, "position": null, "rx_ms": 1755590741607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:42,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 30, "tx_ms": 1755590742365, "position": null}
+2025-08-19 10:05:42,608 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 30, "tx_ms": 1755590742610, "position": null, "rx_ms": 1755590742607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:43,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 31, "tx_ms": 1755590743365, "position": null}
+2025-08-19 10:05:43,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 31, "tx_ms": 1755590743610, "position": null, "rx_ms": 1755590743607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:44,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 32, "tx_ms": 1755590744365, "position": null}
+2025-08-19 10:05:44,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 32, "tx_ms": 1755590744610, "position": null, "rx_ms": 1755590744607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:45,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 33, "tx_ms": 1755590745365, "position": null}
+2025-08-19 10:05:45,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 33, "tx_ms": 1755590745610, "position": null, "rx_ms": 1755590745607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:46,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 34, "tx_ms": 1755590746365, "position": null}
+2025-08-19 10:05:46,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 34, "tx_ms": 1755590746610, "position": null, "rx_ms": 1755590746607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:47,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 35, "tx_ms": 1755590747365, "position": null}
+2025-08-19 10:05:47,607 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 35, "tx_ms": 1755590747610, "position": null, "rx_ms": 1755590747607, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:48,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 36, "tx_ms": 1755590748366, "position": null}
+2025-08-19 10:05:48,609 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 36, "tx_ms": 1755590748610, "position": null, "rx_ms": 1755590748609, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:49,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 37, "tx_ms": 1755590749365, "position": null}
+2025-08-19 10:05:49,606 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 37, "tx_ms": 1755590749610, "position": null, "rx_ms": 1755590749606, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:50,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 38, "tx_ms": 1755590750365, "position": null}
+2025-08-19 10:05:50,606 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 38, "tx_ms": 1755590750610, "position": null, "rx_ms": 1755590750606, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:51,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 39, "tx_ms": 1755590751365, "position": null}
+2025-08-19 10:05:51,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 39, "tx_ms": 1755590751610, "position": null, "rx_ms": 1755590751605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:52,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 40, "tx_ms": 1755590752365, "position": null}
+2025-08-19 10:05:52,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 40, "tx_ms": 1755590752610, "position": null, "rx_ms": 1755590752605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:53,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 41, "tx_ms": 1755590753365, "position": null}
+2025-08-19 10:05:53,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 41, "tx_ms": 1755590753610, "position": null, "rx_ms": 1755590753605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:54,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 42, "tx_ms": 1755590754365, "position": null}
+2025-08-19 10:05:54,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 42, "tx_ms": 1755590754610, "position": null, "rx_ms": 1755590754605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:55,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 43, "tx_ms": 1755590755365, "position": null}
+2025-08-19 10:05:55,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 43, "tx_ms": 1755590755610, "position": null, "rx_ms": 1755590755605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:56,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 44, "tx_ms": 1755590756365, "position": null}
+2025-08-19 10:05:56,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 44, "tx_ms": 1755590756610, "position": null, "rx_ms": 1755590756605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:57,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 45, "tx_ms": 1755590757365, "position": null}
+2025-08-19 10:05:57,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 45, "tx_ms": 1755590757610, "position": null, "rx_ms": 1755590757605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:58,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 46, "tx_ms": 1755590758365, "position": null}
+2025-08-19 10:05:58,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 46, "tx_ms": 1755590758610, "position": null, "rx_ms": 1755590758605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:05:59,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 47, "tx_ms": 1755590759365, "position": null}
+2025-08-19 10:05:59,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 47, "tx_ms": 1755590759610, "position": null, "rx_ms": 1755590759604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:00,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 48, "tx_ms": 1755590760365, "position": null}
+2025-08-19 10:06:00,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 48, "tx_ms": 1755590760610, "position": null, "rx_ms": 1755590760604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:01,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 49, "tx_ms": 1755590761365, "position": null}
+2025-08-19 10:06:01,605 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 49, "tx_ms": 1755590761610, "position": null, "rx_ms": 1755590761605, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:02,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 50, "tx_ms": 1755590762365, "position": null}
+2025-08-19 10:06:02,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 50, "tx_ms": 1755590762610, "position": null, "rx_ms": 1755590762604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:03,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 51, "tx_ms": 1755590763365, "position": null}
+2025-08-19 10:06:03,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 51, "tx_ms": 1755590763610, "position": null, "rx_ms": 1755590763604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:04,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 52, "tx_ms": 1755590764365, "position": null}
+2025-08-19 10:06:04,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 52, "tx_ms": 1755590764610, "position": null, "rx_ms": 1755590764604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:05,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 53, "tx_ms": 1755590765365, "position": null}
+2025-08-19 10:06:05,606 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 53, "tx_ms": 1755590765610, "position": null, "rx_ms": 1755590765606, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:06,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 54, "tx_ms": 1755590766365, "position": null}
+2025-08-19 10:06:06,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 54, "tx_ms": 1755590766610, "position": null, "rx_ms": 1755590766603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:07,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 55, "tx_ms": 1755590767365, "position": null}
+2025-08-19 10:06:07,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 55, "tx_ms": 1755590767610, "position": null, "rx_ms": 1755590767603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:08,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 56, "tx_ms": 1755590768365, "position": null}
+2025-08-19 10:06:08,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 56, "tx_ms": 1755590768610, "position": null, "rx_ms": 1755590768604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:09,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 57, "tx_ms": 1755590769366, "position": null}
+2025-08-19 10:06:09,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 57, "tx_ms": 1755590769610, "position": null, "rx_ms": 1755590769603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:10,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 58, "tx_ms": 1755590770366, "position": null}
+2025-08-19 10:06:10,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 58, "tx_ms": 1755590770610, "position": null, "rx_ms": 1755590770603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:11,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 59, "tx_ms": 1755590771365, "position": null}
+2025-08-19 10:06:11,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 59, "tx_ms": 1755590771610, "position": null, "rx_ms": 1755590771603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:12,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 60, "tx_ms": 1755590772365, "position": null}
+2025-08-19 10:06:12,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 60, "tx_ms": 1755590772610, "position": null, "rx_ms": 1755590772603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:13,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 61, "tx_ms": 1755590773365, "position": null}
+2025-08-19 10:06:13,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 61, "tx_ms": 1755590773610, "position": null, "rx_ms": 1755590773602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:14,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 62, "tx_ms": 1755590774366, "position": null}
+2025-08-19 10:06:14,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 62, "tx_ms": 1755590774610, "position": null, "rx_ms": 1755590774603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:15,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 63, "tx_ms": 1755590775365, "position": null}
+2025-08-19 10:06:15,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 63, "tx_ms": 1755590775610, "position": null, "rx_ms": 1755590775603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:16,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 64, "tx_ms": 1755590776365, "position": null}
+2025-08-19 10:06:16,603 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 64, "tx_ms": 1755590776610, "position": null, "rx_ms": 1755590776603, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:17,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 65, "tx_ms": 1755590777365, "position": null}
+2025-08-19 10:06:17,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 65, "tx_ms": 1755590777610, "position": null, "rx_ms": 1755590777602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:18,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 66, "tx_ms": 1755590778366, "position": null}
+2025-08-19 10:06:18,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 66, "tx_ms": 1755590778610, "position": null, "rx_ms": 1755590778602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:19,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 67, "tx_ms": 1755590779366, "position": null}
+2025-08-19 10:06:19,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 67, "tx_ms": 1755590779610, "position": null, "rx_ms": 1755590779602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:20,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 68, "tx_ms": 1755590780365, "position": null}
+2025-08-19 10:06:20,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 68, "tx_ms": 1755590780610, "position": null, "rx_ms": 1755590780602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:21,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 69, "tx_ms": 1755590781365, "position": null}
+2025-08-19 10:06:21,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 69, "tx_ms": 1755590781610, "position": null, "rx_ms": 1755590781602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:22,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 70, "tx_ms": 1755590782365, "position": null}
+2025-08-19 10:06:22,604 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 70, "tx_ms": 1755590782610, "position": null, "rx_ms": 1755590782604, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:23,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 71, "tx_ms": 1755590783365, "position": null}
+2025-08-19 10:06:23,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 71, "tx_ms": 1755590783610, "position": null, "rx_ms": 1755590783601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:24,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 72, "tx_ms": 1755590784365, "position": null}
+2025-08-19 10:06:24,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 72, "tx_ms": 1755590784610, "position": null, "rx_ms": 1755590784602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:25,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 73, "tx_ms": 1755590785365, "position": null}
+2025-08-19 10:06:25,602 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 73, "tx_ms": 1755590785610, "position": null, "rx_ms": 1755590785602, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:26,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 74, "tx_ms": 1755590786365, "position": null}
+2025-08-19 10:06:26,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 74, "tx_ms": 1755590786610, "position": null, "rx_ms": 1755590786601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:27,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 75, "tx_ms": 1755590787366, "position": null}
+2025-08-19 10:06:27,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 75, "tx_ms": 1755590787610, "position": null, "rx_ms": 1755590787601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:28,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 76, "tx_ms": 1755590788365, "position": null}
+2025-08-19 10:06:28,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 76, "tx_ms": 1755590788610, "position": null, "rx_ms": 1755590788601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:29,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 77, "tx_ms": 1755590789365, "position": null}
+2025-08-19 10:06:29,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 77, "tx_ms": 1755590789610, "position": null, "rx_ms": 1755590789601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:30,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 78, "tx_ms": 1755590790365, "position": null}
+2025-08-19 10:06:30,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 78, "tx_ms": 1755590790610, "position": null, "rx_ms": 1755590790600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:31,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 79, "tx_ms": 1755590791365, "position": null}
+2025-08-19 10:06:31,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 79, "tx_ms": 1755590791610, "position": null, "rx_ms": 1755590791601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:32,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 80, "tx_ms": 1755590792366, "position": null}
+2025-08-19 10:06:32,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 80, "tx_ms": 1755590792610, "position": null, "rx_ms": 1755590792601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:33,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 81, "tx_ms": 1755590793365, "position": null}
+2025-08-19 10:06:33,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 81, "tx_ms": 1755590793610, "position": null, "rx_ms": 1755590793601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:34,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 82, "tx_ms": 1755590794365, "position": null}
+2025-08-19 10:06:34,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 82, "tx_ms": 1755590794610, "position": null, "rx_ms": 1755590794601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:35,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 83, "tx_ms": 1755590795366, "position": null}
+2025-08-19 10:06:35,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 83, "tx_ms": 1755590795610, "position": null, "rx_ms": 1755590795600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:36,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 84, "tx_ms": 1755590796366, "position": null}
+2025-08-19 10:06:36,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 84, "tx_ms": 1755590796610, "position": null, "rx_ms": 1755590796600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:37,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 85, "tx_ms": 1755590797365, "position": null}
+2025-08-19 10:06:37,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 85, "tx_ms": 1755590797610, "position": null, "rx_ms": 1755590797600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:38,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 86, "tx_ms": 1755590798365, "position": null}
+2025-08-19 10:06:38,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 86, "tx_ms": 1755590798610, "position": null, "rx_ms": 1755590798600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:39,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 87, "tx_ms": 1755590799365, "position": null}
+2025-08-19 10:06:39,601 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 87, "tx_ms": 1755590799610, "position": null, "rx_ms": 1755590799601, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:40,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 88, "tx_ms": 1755590800365, "position": null}
+2025-08-19 10:06:40,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 88, "tx_ms": 1755590800610, "position": null, "rx_ms": 1755590800600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:41,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 89, "tx_ms": 1755590801365, "position": null}
+2025-08-19 10:06:41,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 89, "tx_ms": 1755590801610, "position": null, "rx_ms": 1755590801600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:42,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 90, "tx_ms": 1755590802365, "position": null}
+2025-08-19 10:06:42,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 90, "tx_ms": 1755590802610, "position": null, "rx_ms": 1755590802600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:43,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 91, "tx_ms": 1755590803365, "position": null}
+2025-08-19 10:06:43,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 91, "tx_ms": 1755590803610, "position": null, "rx_ms": 1755590803600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:44,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 92, "tx_ms": 1755590804365, "position": null}
+2025-08-19 10:06:44,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 92, "tx_ms": 1755590804610, "position": null, "rx_ms": 1755590804599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:45,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 93, "tx_ms": 1755590805365, "position": null}
+2025-08-19 10:06:45,600 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 93, "tx_ms": 1755590805610, "position": null, "rx_ms": 1755590805600, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:46,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 94, "tx_ms": 1755590806365, "position": null}
+2025-08-19 10:06:46,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 94, "tx_ms": 1755590806610, "position": null, "rx_ms": 1755590806599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:47,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 95, "tx_ms": 1755590807365, "position": null}
+2025-08-19 10:06:47,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 95, "tx_ms": 1755590807610, "position": null, "rx_ms": 1755590807599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:48,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 96, "tx_ms": 1755590808365, "position": null}
+2025-08-19 10:06:48,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 96, "tx_ms": 1755590808610, "position": null, "rx_ms": 1755590808599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:49,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 97, "tx_ms": 1755590809365, "position": null}
+2025-08-19 10:06:49,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 97, "tx_ms": 1755590809610, "position": null, "rx_ms": 1755590809599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:50,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 98, "tx_ms": 1755590810365, "position": null}
+2025-08-19 10:06:50,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 98, "tx_ms": 1755590810610, "position": null, "rx_ms": 1755590810599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:51,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 99, "tx_ms": 1755590811365, "position": null}
+2025-08-19 10:06:51,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 99, "tx_ms": 1755590811610, "position": null, "rx_ms": 1755590811599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:52,366 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 100, "tx_ms": 1755590812366, "position": null}
+2025-08-19 10:06:52,599 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 100, "tx_ms": 1755590812610, "position": null, "rx_ms": 1755590812599, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:53,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 101, "tx_ms": 1755590813365, "position": null}
+2025-08-19 10:06:53,598 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 101, "tx_ms": 1755590813610, "position": null, "rx_ms": 1755590813598, "receiver_position": null, "receiver_id": "drone_1"}
+2025-08-19 10:06:54,365 - DEBUG - TX {"drone_id": "drone_1", "protocol": "BROADCAST", "packet_number": 102, "tx_ms": 1755590814365, "position": null}
+2025-08-19 10:06:54,598 - INFO - RX {"drone_id": "drone_2", "protocol": "BROADCAST", "packet_number": 102, "tx_ms": 1755590814610, "position": null, "rx_ms": 1755590814598, "receiver_position": null, "receiver_id": "drone_1"}
+
