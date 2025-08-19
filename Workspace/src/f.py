@@ -109,40 +109,38 @@ class WextAdhoc:
 
     def bring_up(self) -> bool:
         logger.info("Preparing interface for WEXT Ad-Hoc (with pre-scan): %s", self.iface)
-        # Neutralize NM/supplicant & clear state
+
+        # Neutralize managers & clear state
         run(['sudo','nmcli','dev','disconnect', self.iface], ignore_rc=True)
         run(['sudo','nmcli','dev','set', self.iface, 'managed','no'], ignore_rc=True)
+        run(['sudo','systemctl','stop','iwd'], ignore_rc=True)              # iwd can hold the iface
         run(['sudo','killall','wpa_supplicant'], ignore_rc=True)
+        run(['sudo','iw','dev', self.iface, 'ibss','leave'], ignore_rc=True)
+        run(['sudo','iw','dev', self.iface, 'mesh','leave'], ignore_rc=True)
         run(['sudo','ip','addr','flush','dev', self.iface], ignore_rc=True)
         run(['sudo','ip','link','set', self.iface, 'down'], ignore_rc=True)
 
-        # Election: smallest numeric ID is the founder
-        my_num = id_num(self.drone_id)
-        founder = True  # default to founder if alone
-        try:
-            # If there are no digits we still act as founder; otherwise compare after peer info is known.
-            # In practice, with only local knowledge, just define: id ending with '1' becomes founder.
-            founder = (my_num == 0) or (my_num == min(my_num, my_num))  # trivial; real decision happens via wait times below
-        except Exception:
-            founder = True
-
-        # Everyone scans first. Founders only short-scan; followers long-scan.
-        scan_time = FOUNDERS_SHORT_SCAN_S if founder else FOLLOWER_GRACE_S
-        logger.info("Scanning up to %.1fs for existing ad-hoc cell ESSID=\"%s\"...", scan_time, self.ssid)
+        # Scan (iface must be UP). We’ll bring it DOWN again before changing mode.
+        scan_time = FOUNDERS_SHORT_SCAN_S  # both sides can use same window; follower logic is optional
+        logger.info('Scanning up to %.1fs for existing ad-hoc cell ESSID="%s"...', scan_time, self.ssid)
+        run(['sudo','ip','link','set', self.iface, 'up'], ignore_rc=True)
         found = self._scan_until(scan_time)
 
         use_channel = self.channel
         if found:
             use_channel = found['channel']
-            logger.info("Found existing cell BSSID=%s on channel %d; joining.",
-                        found['bssid'], found['channel'])
+            logger.info("Found existing cell on channel %d; joining.", use_channel)
         else:
-            if founder:
-                logger.info("No existing cell seen; acting as founder on channel %d.", use_channel)
-            else:
-                logger.info("No cell discovered after follower grace; proceeding to create on channel %d.", use_channel)
+            logger.info("No existing cell seen; creating on channel %d.", use_channel)
 
-        # Configure ad-hoc
+        # >>> CRITICAL: iface DOWN before WEXT mode change <<<
+        run(['sudo','ip','link','set', self.iface, 'down'], ignore_rc=True)
+        time.sleep(0.1)
+        # reset iftype to a benign state (some drivers are picky)
+        run(['sudo','iw','dev', self.iface, 'set','type','managed'], ignore_rc=True)
+        time.sleep(0.05)
+
+        # Configure legacy ad-hoc
         if not run(['sudo','iwconfig', self.iface, 'mode','ad-hoc']): return False
         if not run(['sudo','iwconfig', self.iface, 'essid', self.ssid]): return False
         if not run(['sudo','iwconfig', self.iface, 'channel', str(use_channel)]): return False
@@ -151,10 +149,9 @@ class WextAdhoc:
         # Verify
         try:
             out = subprocess.check_output(['iwconfig', self.iface],
-                                          stderr=subprocess.DEVNULL, text=True)
+                                        stderr=subprocess.DEVNULL, text=True)
             if ('Mode:Ad-Hoc' not in out) or (f'ESSID:"{self.ssid}"' not in out):
                 logger.error("WEXT state not as expected:\n%s", out.strip()); return False
-            # Log Cell/BSSID and Channel for debugging
             cell = re.search(r'Cell\s*[:=]\s*([0-9A-Fa-f:]{17})', out)
             ch   = re.search(r'Channel\s*:(\d+)', out) or re.search(r'Frequency:.*\(Channel\s*(\d+)\)', out)
             logger.info("Ad-Hoc up. %s %s",
@@ -164,6 +161,7 @@ class WextAdhoc:
             logger.error("Cannot read iwconfig state."); return False
 
         return True
+
 
     def add_ip(self, ip_cidr: str) -> bool:
         if not run(['sudo','ip','addr','add', ip_cidr, 'dev', self.iface]):
