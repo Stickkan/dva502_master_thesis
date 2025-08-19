@@ -1,6 +1,5 @@
-# ibss_only_controller.py
-# Peer-to-peer Wi-Fi using nl80211 IBSS only + UDP discovery + TCP/UDP comms.
-# Deterministic IBSS join (fixed-freq, beacon-interval 100, HT20).
+# wext_adhoc_controller.py
+# Peer-to-peer Wi-Fi using legacy WEXT Ad-Hoc only + UDP discovery + TCP/UDP comms.
 # Clean NM/wpa_supplicant neutralization and restore on exit.
 
 import socket
@@ -15,24 +14,9 @@ import ipaddress
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger("IBSSController")
+logger = logging.getLogger("WEXTController")
 
-# --------- Channel → frequency (MHz) ---------
-CHAN_TO_FREQ_24 = {
-    1:2412, 2:2417, 3:2422, 4:2427, 5:2432, 6:2437, 7:2442,
-    8:2447, 9:2452, 10:2457, 11:2462, 12:2467, 13:2472
-}
-# U-NII-3 (commonly initiate-able in many EU setups). If your driver rejects 5 GHz IBSS, use 2.4 GHz.
-CHAN_TO_FREQ_5 = {149:5745, 153:5765, 157:5785, 161:5805, 165:5825}
-
-def ch_to_freq_mhz(band: str, ch: int) -> int:
-    ch = int(ch)
-    if band == '2.4':
-        return CHAN_TO_FREQ_24.get(ch, 2437)
-    if band == '5':
-        return CHAN_TO_FREQ_5.get(ch, 5745)
-    raise ValueError(f"Unknown band {band}")
-
+# ---------- helpers ----------
 def detect_wifi_interface() -> str | None:
     try:
         out = subprocess.check_output(['iw', 'dev'], stderr=subprocess.DEVNULL).decode()
@@ -57,7 +41,6 @@ def id_num(s: str) -> int:
     d = ''.join(filter(str.isdigit, s))
     return int(d) if d else 0
 
-# ---------- Runner ----------
 def run(cmd: list[str], ignore_rc: bool = False) -> bool:
     logger.info("Running command: %s", ' '.join(cmd))
     try:
@@ -74,14 +57,12 @@ def run(cmd: list[str], ignore_rc: bool = False) -> bool:
             logger.error("Exception running command: %s", e)
         return False
 
-# ---------- IBSS bring-up / teardown ----------
-class IBSS:
-    def __init__(self, iface: str, ssid: str, band: str, channel: int):
+# ---------- WEXT ad-hoc bring-up / teardown ----------
+class WextAdhoc:
+    def __init__(self, iface: str, ssid: str, channel: int):
         self.iface = iface
         self.ssid = ssid
-        self.band = band
         self.channel = int(channel)
-        self.freq = ch_to_freq_mhz(band, channel)
         self._original_connection = self._get_active_connection()
 
     def _get_active_connection(self):
@@ -101,40 +82,32 @@ class IBSS:
         return None
 
     def bring_up(self) -> bool:
-        logger.info("Configuring IBSS on %s SSID='%s' band=%s ch=%s (freq=%s MHz)",
-                    self.iface, self.ssid, self.band, self.channel, self.freq)
+        logger.info("Configuring WEXT Ad-Hoc on %s SSID='%s' ch=%s",
+                    self.iface, self.ssid, self.channel)
+
         # Neutralize NM/supplicant & clear state
         run(['sudo', 'nmcli', 'dev', 'disconnect', self.iface], ignore_rc=True)
         run(['sudo', 'nmcli', 'dev', 'set', self.iface, 'managed', 'no'], ignore_rc=True)
         run(['sudo', 'killall', 'wpa_supplicant'], ignore_rc=True)
-        run(['sudo', 'iw', 'dev', self.iface, 'ibss', 'leave'], ignore_rc=True)
         run(['sudo', 'ip', 'addr', 'flush', 'dev', self.iface], ignore_rc=True)
-        if not run(['sudo', 'ip', 'link', 'set', self.iface, 'down']): return False
+        run(['sudo', 'ip', 'link', 'set', self.iface, 'down'], ignore_rc=True)
 
-        # Ensure correct iftype and up
-        run(['sudo', 'iw', 'dev', self.iface, 'set', 'type', 'ibss'], ignore_rc=True)
+        # Legacy ad-hoc configuration
+        if not run(['sudo', 'iwconfig', self.iface, 'mode', 'ad-hoc']): return False
+        if not run(['sudo', 'iwconfig', self.iface, 'essid', self.ssid]): return False
+        if not run(['sudo', 'iwconfig', self.iface, 'channel', str(self.channel)]): return False
         if not run(['sudo', 'ip', 'link', 'set', self.iface, 'up']): return False
 
-        # Deterministic cell parameters: fixed-freq + beacon-interval 100 + HT20
-        if not run(['sudo', 'iw', 'dev', self.iface, 'ibss', 'join', self.ssid,
-                    str(self.freq), 'fixed-freq', 'beacon-interval', '100', 'HT20']):
-            logger.error("IBSS join failed (driver/firmware may not support IBSS).")
-            return False
-
-        # Best-effort: disable power save (some drivers return -95: ignore)
-        run(['sudo', 'iw', 'dev', self.iface, 'set', 'power_save', 'off'], ignore_rc=True)
-        run(['sudo', 'iwconfig', self.iface, 'power', 'off'], ignore_rc=True)
-
-        # Verify link
+        # Verify link state
         try:
-            out = subprocess.check_output(['iw', 'dev', self.iface, 'link'],
+            out = subprocess.check_output(['iwconfig', self.iface],
                                           stderr=subprocess.DEVNULL).decode()
-            if 'IBSS' not in out or self.ssid not in out or f'freq: {self.freq}' not in out:
-                logger.error("IBSS link not as expected:\n%s", out.strip() or 'Not connected.')
+            if ('Mode:Ad-Hoc' not in out) or (f'ESSID:"{self.ssid}"' not in out):
+                logger.error("WEXT state not as expected:\n%s", out.strip())
                 return False
-            logger.info("IBSS up: %s", out.strip())
+            logger.info("Ad-Hoc up:\n%s", '\n'.join(line for line in out.splitlines() if line.strip()))
         except subprocess.CalledProcessError:
-            logger.error("Cannot read link state (iw dev link).")
+            logger.error("Cannot read iwconfig state.")
             return False
         return True
 
@@ -147,11 +120,11 @@ class IBSS:
 
     def teardown(self):
         logger.info("Restoring original network state...")
-        run(['sudo', 'iw', 'dev', self.iface, 'ibss', 'leave'], ignore_rc=True)
         run(['sudo', 'ip', 'addr', 'flush', 'dev', self.iface], ignore_rc=True)
         run(['sudo', 'ip', 'link', 'set', self.iface, 'down'], ignore_rc=True)
-        # Back to managed Wi-Fi
-        run(['sudo', 'iw', 'dev', self.iface, 'set', 'type', 'managed'], ignore_rc=True)
+        # back to managed Wi-Fi
+        if not run(['sudo', 'iw', 'dev', self.iface, 'set', 'type', 'managed'], ignore_rc=True):
+            run(['sudo', 'iwconfig', self.iface, 'mode', 'managed'], ignore_rc=True)
         run(['sudo', 'nmcli', 'dev', 'set', self.iface, 'managed', 'yes'], ignore_rc=True)
         run(['nmcli', 'radio', 'wifi', 'on'], ignore_rc=True)
         run(['sudo', 'ip', 'link', 'set', self.iface, 'up'], ignore_rc=True)
@@ -162,14 +135,13 @@ class IBSS:
         else:
             logger.info("No previous connection recorded.")
 
-# ---------- Discovery ----------
+# ---------- Discovery (UDP) ----------
 class Discovery:
-    def __init__(self, drone_id, tcp_port, udp_port, iface: str, ip_base: str, ip_end: int, port=19999):
+    def __init__(self, drone_id, tcp_port, udp_port, ip_base: str, ip_end: int, port=19999):
         self._drone_id = drone_id
         self._port = port
         self._tcp_port = tcp_port
         self._udp_port = udp_port
-        self._iface = iface
         self._ip = f"{ip_base}{ip_end}"
         self._bcast_ip = str(ipaddress.IPv4Interface(f"{self._ip}/24").network.broadcast_address)
         self._running = False
@@ -258,7 +230,6 @@ class ConnectionManager:
             for s in list(self._clients.values()):
                 try: s.close()
                 except Exception: pass
-        # Nudge listeners to exit
         try:
             socket.create_connection(('127.0.0.1', self._tcp_port), timeout=0.5).close()
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
@@ -340,7 +311,7 @@ class ConnectionManager:
             logger.error("Error sending to %s: %s", pid, e)
             self.disconnect_from_peer(pid)
 
-    # --- servers/worker ---
+    # servers/worker
     def _tcp_server(self):
         srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -429,11 +400,10 @@ class ConnectionManager:
 
 # ---------- Controller ----------
 class Controller:
-    def __init__(self, drone_id, iface, ssid, band, channel, tcp_port, udp_port, restore_net):
+    def __init__(self, drone_id, iface, ssid, channel, tcp_port, udp_port, restore_net):
         self.drone_id = drone_id
         self.iface = iface
         self.ssid = ssid
-        self.band = band
         self.channel = int(channel)
         self.tcp_port = int(tcp_port)
         self.udp_port = int(udp_port)
@@ -443,9 +413,9 @@ class Controller:
         self.ip_base = "192.168.1."
         self.ip_cidr = f"{self.ip_base}{ip_end}/24"
 
-        self.ibss = IBSS(iface, ssid, band, channel)
+        self.wext = WextAdhoc(iface, ssid, self.channel)
         self.discovery = Discovery(drone_id, self.tcp_port, self.udp_port,
-                                   iface, self.ip_base, ip_end, port=19999)
+                                   self.ip_base, ip_end, port=19999)
         self.discovery.on_peer_discovered = self._on_peer
         self._discovered = {}
         self._lock = threading.Lock()
@@ -461,13 +431,12 @@ class Controller:
 
     def start(self) -> bool:
         logger.info("--- Starting Controller for %s ---", self.drone_id)
-        logger.info("Step 1a: IBSS bring-up...")
-        if not self.ibss.bring_up():
-            logger.critical("IBSS bring-up failed. If your card doesn't support IBSS, "
-                            "use your broadcast-only WEXT script or run one node as AP.")
+        logger.info("Step 1a: WEXT ad-hoc bring-up...")
+        if not self.wext.bring_up():
+            logger.critical("Ad-hoc bring-up failed.")
             return False
         logger.info("Step 1b: Assigning IP address...")
-        if not self.ibss.add_ip(self.ip_cidr):
+        if not self.wext.add_ip(self.ip_cidr):
             logger.critical("Could not assign IP address."); return False
 
         time.sleep(1.0)
@@ -479,7 +448,7 @@ class Controller:
         for target in (self._prune_loop, self._reconnect_loop, self._status_broadcast, self._heartbeat):
             t = threading.Thread(target=target, daemon=True); t.start(); self._threads.append(t)
 
-        logger.info("--- Controller is Running (IBSS ch=%s band=%s) ---", self.channel, self.band)
+        logger.info("--- Controller is Running (WEXT ch=%s) ---", self.channel)
         return True
 
     def stop(self):
@@ -489,7 +458,7 @@ class Controller:
         self.discovery.stop()
         self.cm.stop()
         if self.restore_net or not self._discovered:
-            self.ibss.teardown()
+            self.wext.teardown()
         logger.info("--- Controller Stopped ---")
 
     # --- app loops ---
@@ -536,7 +505,6 @@ class Controller:
         with self._lock:
             self._discovered[pid] = {'info': info, 'last': time.time()}
         if id_num(self.drone_id) > id_num(pid):
-            # active side establishes TCP
             self.cm.connect_to_peer(info, protocol="TCP")
 
     def _on_msg(self, msg: dict):
@@ -554,12 +522,11 @@ class Controller:
 
 # ---------- CLI ----------
 def main():
-    p = argparse.ArgumentParser(description='IBSS-only Drone Controller')
+    p = argparse.ArgumentParser(description='WEXT Ad-Hoc Drone Controller (legacy ad-hoc only)')
     p.add_argument('--drone-id', required=True, help='Unique ID (e.g., drone_1)')
     p.add_argument('--interface', default=None, help='Wi-Fi interface (auto-detected if omitted)')
-    p.add_argument('--ssid', default='drone-swarm', help='IBSS SSID')
-    p.add_argument('--band', choices=['2.4', '5'], default='2.4', help="Wi-Fi band (default: 2.4)")
-    p.add_argument('--channel', type=int, help='Channel (defaults: 6 on 2.4, 149 on 5)')
+    p.add_argument('--ssid', default='drone-swarm', help='Ad-Hoc ESSID')
+    p.add_argument('--channel', type=int, default=6, help='Channel (2.4 GHz typical; 5 GHz ad-hoc often unsupported)')
     p.add_argument('--tcp-port', type=int, default=20000)
     p.add_argument('--udp-port', type=int, default=20001)
     p.add_argument('--setup-net', action='store_true', help='Restore managed Wi-Fi on exit')
@@ -569,11 +536,7 @@ def main():
     if not iface:
         logger.critical("No Wi-Fi interface found. Pass --interface explicitly."); return
 
-    channel = args.channel
-    if channel is None:
-        channel = 6 if args.band == '2.4' else 149
-
-    ctrl = Controller(args.drone_id, iface, args.ssid, args.band, channel,
+    ctrl = Controller(args.drone_id, iface, args.ssid, args.channel,
                       args.tcp_port, args.udp_port, args.setup_net)
     try:
         if ctrl.start():
