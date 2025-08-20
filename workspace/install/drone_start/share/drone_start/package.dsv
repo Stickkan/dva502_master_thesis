@@ -1,0 +1,12 @@
+source;share/drone_start/hook/path.ps1
+source;share/drone_start/hook/path.dsv
+source;share/drone_start/hook/path.sh
+source;share/drone_start/hook/pythonpath.ps1
+source;share/drone_start/hook/pythonpath.dsv
+source;share/drone_start/hook/pythonpath.sh
+source;share/drone_start/hook/pythonscriptspath.ps1
+source;share/drone_start/hook/pythonscriptspath.dsv
+source;share/drone_start/hook/pythonscriptspath.sh
+source;share/drone_start/hook/ament_prefix_path.ps1
+source;share/drone_start/hook/ament_prefix_path.dsv
+source;share/drone_start/hook/ament_prefix_path.sh

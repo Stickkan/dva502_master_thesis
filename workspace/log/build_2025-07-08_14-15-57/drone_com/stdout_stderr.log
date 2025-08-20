@@ -1,0 +1,44 @@
+running egg_info
+creating ../../build/drone_com/drone_com.egg-info
+writing ../../build/drone_com/drone_com.egg-info/PKG-INFO
+writing dependency_links to ../../build/drone_com/drone_com.egg-info/dependency_links.txt
+writing entry points to ../../build/drone_com/drone_com.egg-info/entry_points.txt
+writing requirements to ../../build/drone_com/drone_com.egg-info/requires.txt
+writing top-level names to ../../build/drone_com/drone_com.egg-info/top_level.txt
+writing manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+reading manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+writing manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build
+creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib
+creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+copying drone_com/trust_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+copying drone_com/__init__.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+copying drone_com/discovery.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+copying drone_com/drone2drone.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+copying drone_com/connection_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+running install
+running install_lib
+creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/trust_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/__init__.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/discovery.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/drone2drone.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/connection_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/trust_manager.py to trust_manager.cpython-310.pyc
+byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/__init__.py to __init__.cpython-310.pyc
+byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/discovery.py to discovery.cpython-310.pyc
+byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/drone2drone.py to drone2drone.cpython-310.pyc
+byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/connection_manager.py to connection_manager.cpython-310.pyc
+running install_data
+creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index
+creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index
+creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index/packages
+copying resource/drone_com -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index/packages
+copying package.xml -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/drone_com
+running install_egg_info
+Copying ../../build/drone_com/drone_com.egg-info to /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com-0.0.0-py3.10.egg-info
+running install_scripts
+Installing drone2drone script to /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/drone_com
+writing list of installed files to '/home/fredrik/dva502_master_thesis/Workspace/build/drone_com/install.log'

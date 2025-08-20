@@ -1,0 +1,33 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from custom_drone_interfaces/srv/ComputePath.srv
+// generated code does not contain a copyright notice
+
+#include "custom_drone_interfaces/msg/Path3D.idl"
+
+module custom_drone_interfaces {
+  module srv {
+    typedef double double__3[3];
+    @verbatim (language="comment", text=
+      "Input")
+    struct ComputePath_Request {
+      @verbatim (language="comment", text=
+        "List of custom_drone_interfaces/msg/Waypoints")
+      custom_drone_interfaces::msg::Path3D input_path;
+
+      @verbatim (language="comment", text=
+        "Maximum velocity limit")
+      double__3 velocity_limit;
+
+      @verbatim (language="comment", text=
+        "Maximum acceleration limit")
+      double__3 acceleration_limit;
+
+      string planning_method;
+    };
+    @verbatim (language="comment", text=
+      "Output")
+    struct ComputePath_Response {
+      custom_drone_interfaces::msg::Path3D planned_path;
+    };
+  };
+};

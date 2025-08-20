@@ -1,0 +1,22 @@
+{
+  "package_name": "custom_drone_interfaces",
+  "non_idl_tuples": [
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/MissionFeedback.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/MissionGoal.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/MissionResult.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/MissionCommand.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/AgentData.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/AgentsList.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/SensorDataCollection.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/StatusDataCollection.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/ObjectProximityData.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/Waypoint.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/SubWaypoint.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/Path3D.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/TaskSpecification.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:msg/SetPoint.msg",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:srv/ComputePath.srv",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:action/MissionExecutor.action",
+    "/home/fredrik/dva502_master_thesis/Workspace/src/custom_drone_interfaces:action/Tracker.action"
+  ]
+}

@@ -1,0 +1,54 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/Waypoint.msg
+// generated code does not contain a copyright notice
+
+#include "custom_drone_interfaces/msg/SubWaypoint.idl"
+#include "custom_drone_interfaces/msg/TaskSpecification.idl"
+#include "geometry_msgs/msg/Point.idl"
+#include "geometry_msgs/msg/Vector3.idl"
+
+module custom_drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "Waypoint.msg")
+    struct Waypoint {
+      @verbatim (language="comment", text=
+        "point to reach")
+      geometry_msgs::msg::Point point;
+
+      @verbatim (language="comment", text=
+        "Defines the final velocity at the point")
+      geometry_msgs::msg::Vector3 velocity;
+
+      @verbatim (language="comment", text=
+        "path to the waypoint")
+      sequence<custom_drone_interfaces::msg::SubWaypoint> subtrajectory;
+
+      @verbatim (language="comment", text=
+        "is the point a stopping location or not")
+      boolean stop;
+
+      @verbatim (language="comment", text=
+        "Heading in radians")
+      double heading;
+
+      @verbatim (language="comment", text=
+        "Time in seconds to reach this waypoint")
+      double time_in_seconds;
+
+      @verbatim (language="comment", text=
+        "how long to stay at the point")
+      double hold_time;
+
+      @verbatim (language="comment", text=
+        "Accepted max distance from waypoint")
+      float acceptence_radius;
+
+      @verbatim (language="comment", text=
+        "What task to be performed. Check MMT definition")
+      custom_drone_interfaces::msg::TaskSpecification task;
+
+      sequence<int32> commandid;
+    };
+  };
+};
