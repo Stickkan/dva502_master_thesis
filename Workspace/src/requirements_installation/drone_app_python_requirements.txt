@@ -1,0 +1,4 @@
+# Python package requirements for the ad‑hoc drone controller
+# Runtime uses only Python standard library.
+# No external pip packages are required.
+# Standard modules used: socket, threading, json, time, subprocess, logging, argparse, collections (deque), ipaddress

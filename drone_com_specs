@@ -1,0 +1,40 @@
+Description:
+ROS2 Ad-Hoc Drone Communication Package
+
+This package facilitates decentralized, ad-hoc communication between multiple drones using ROS2. Each drone runs a node that acts as both a server and a client, enabling peer-to-peer connections with trusted drones that come within range. The system is designed to be modular and supports dynamic switching between network protocols and communication frequencies to maintain robust connectivity.
+The code will run ROS2 based communication written in python. Each drone will act as both server and client to other drones within its range, and on the trusted list. 
+The overhead should be in adhoc-style networking. There should be functionality to run both TCP and UDP. Wifi 2.4, 5 and bluetooth. When another drone comes into range, it should perform necessary handshakes etc, check if the drone is trusted, and connect with them. Later functionality that can change the frequency if band is blocked, or reroute messages to another drone by indirect/proxy communication. 
+
+
+Parameters:
+-Time
+-Connection delay
+-Energy
+-Distance
+-Package loss
+
+Code functions:
+-Find Other drones
+-Connect to them
+-Change between Wifi 2.4, 5 and bluetooth communication
+-Change between UDP and TCP communication
+-In the future, change between protocols if communication loss
+-Check drones VS list of trusted IDs before accepting connnection
+
+Requirements:
+-Communication with JSON objects
+-Modular
+-Python
+-Each drone acts as server and client
+-Adhoc network, connecting several drones
+-Able to add code to route packages to a drone outside of range, but within range of other drones (In the future, hence modularity)
+-Written for ROS2
+
+Package structure:
+-Package number
+-Energy expendature?
+-Checksum
+-Position x,y,z
+-Velocity x,y,z
+-List of connected drones
+-Timestamps

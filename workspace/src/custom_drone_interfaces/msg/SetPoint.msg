@@ -1,0 +1,3 @@
+custom_drone_interfaces/SubWaypoint setpoint_data
+float32 frequency
+bool r_t_f

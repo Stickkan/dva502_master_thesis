@@ -1,0 +1,28 @@
+# System packages required for the ad‑hoc drone controller
+# Install with: sudo apt-get update && xargs -a <(sed -e 's/#.*//' -e '/^\s*$/d' drone_app_system_requirements.txt) -r sudo apt-get install -y
+
+# Network & wireless tooling
+network-manager      # provides nmcli
+iw                   # provides 'iw'
+wireless-tools       # provides 'iwconfig'
+iproute2             # provides 'ip'
+psmisc               # provides 'killall'
+
+# Optional but recommended (firewall + debugging)
+ufw
+tcpdump
+
+# Python runtime
+python3
+python3-venv
+python3-pip
+Ubuntu 22.04.05 Jammy
+6.8.0-65-generic #68~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Jul 15 18:06:34 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+iw version 5.16
+iwconfig Wireless tools version 30
+Kernel Compiled with Wireless Extension v22
+wlo1 compiled with Wireless Extension v22
+ip utility, iproute2-5.15.0, libbpf 0.5.0
+nmcli tool, version 1.36.6
+Python 3.10.12
+wpasupplicant 2:2.10-6ubuntu2.2
