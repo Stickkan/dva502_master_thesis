@@ -1,75 +1,23 @@
-#!/usr/bin/env python3
+# universal_standalone_controller.py (hardened)
+# Brings up peer-to-peer Wi-Fi using the best mode supported by the driver:
+# 1) 802.11s mesh (nl80211 "mesh point"),
+# 2) IBSS ad-hoc (nl80211),
+# 3) Legacy ad-hoc (WEXT/iwconfig).
+# Then runs UDP discovery + TCP/UDP comms (test/live).
 
-import argparse
-import ipaddress
-import json
-import logging
-import os
-import re
 import socket
-import subprocess
 import threading
+import json
 import time
+import subprocess
+import logging
+import argparse
 from collections import deque
-from typing import Optional, Dict, List
+import ipaddress
 
-# ---------- Logging ----------
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("Swarm")
-
-# ---------- Constants ----------
-SCAN_INTERVAL_S = 1.0
-FOUNDERS_SHORT_SCAN_S = 2.0
-DISCOVERY_PORT = 19999
-TELEMETRY_PORT = 29999
-
-# ---------- Helpers ----------
-def run(cmd: List[str], ignore_rc: bool = False) -> bool:
-    logger.info("RUN: %s", " ".join(cmd))
-    try:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        out, err = p.communicate()
-        if out:
-            out = out.strip()
-            if out:
-                logger.debug(out)
-        if p.returncode != 0 and not ignore_rc:
-            em = (err or "").strip()
-            if em:
-                logger.error(em)
-            return False
-        if err and ignore_rc:
-            logger.debug(err.strip())
-        return True
-    except Exception as e:
-        if not ignore_rc:
-            logger.error("Exception running command: %s", e)
-        return False
-
-
-def detect_wifi_interface() -> Optional[str]:
-    # Try 'iw dev'
-    try:
-        out = subprocess.check_output(["iw", "dev"], stderr=subprocess.DEVNULL, text=True)
-        for line in out.splitlines():
-            line = line.strip()
-            if line.startswith("Interface "):
-                return line.split()[1]
-    except Exception:
-        pass
-    # Fallback 'nmcli device'
-    try:
-        out = subprocess.check_output(["nmcli", "-t", "-f", "DEVICE,TYPE", "device"],
-                                      stderr=subprocess.DEVNULL, text=True)
-        for line in out.splitlines():
-            dev, typ = line.split(":")
-            if typ == "wifi":
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger("DroneController")
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("DroneController")
 
 # ---------- Helpers / RF tables ----------
 CHAN_TO_FREQ_24 = {
@@ -99,184 +47,353 @@ def detect_wifi_interface() -> str | None:
         pass
     return None
 
-
 def id_num(s: str) -> int:
-    d = "".join(filter(str.isdigit, s))
+    d = ''.join(filter(str.isdigit, s))
     return int(d) if d else 0
 
+def ch_to_freq_mhz(ch: int) -> int:
+    """Return frequency MHz for a given channel. Defaults to 2437 (ch 6) if unknown."""
+    ch = int(ch)
+    if ch in CHAN_TO_FREQ_24: return CHAN_TO_FREQ_24[ch]
+    if ch in CHAN_TO_FREQ_5:  return CHAN_TO_FREQ_5[ch]
+    return 2437  # safe default
 
-def bind_to_iface(sock: socket.socket, iface: str) -> None:
-    """Try to bind socket to interface (needs CAP_NET_RAW/CAP_NET_ADMIN)."""
+def mesh_supported() -> bool:
     try:
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BINDTODEVICE, iface.encode())
-        logger.debug("Bound socket to iface %s", iface)
-    except (OSError, AttributeError, PermissionError):
-        # Non-fatal; continue without SO_BINDTODEVICE
-        logger.debug("SO_BINDTODEVICE not set (non-root or unsupported); continuing.")
+        txt = subprocess.check_output(['iw', 'list'], stderr=subprocess.DEVNULL).decode()
+        return ('Supported interface modes:' in txt) and ('* mesh point' in txt)
+    except Exception:
+        return False
 
+def ibss_supported() -> bool:
+    try:
+        txt = subprocess.check_output(['iw', 'list'], stderr=subprocess.DEVNULL).decode()
+        return ('Supported interface modes:' in txt) and ('* IBSS' in txt)
+    except Exception:
+        return False
 
-# ---------- WEXT Ad-Hoc Join/Create ----------
-class WextAdhoc:
-    def __init__(self, iface: str, ssid: str, channel: int):
-        self.iface = iface
-        self.ssid = ssid
-        self.channel = int(channel)
+# ---------- Discovery (radio bring-up + UDP peer discovery) ----------
+class Discovery:
+    def __init__(self, drone_id, tcp_port, udp_port, discovery_port=19999):
+        self._drone_id = drone_id
+        self._port = discovery_port
+        self._tcp_port = tcp_port
+        self._udp_port = udp_port
+        self.on_peer_discovered = None
+        self._running = True
+
+        self.cfg = {
+            "interface": "wlo1",            # overridden by controller
+            "ssid": "drone-swarm",          # meshid or IBSS SSID
+            "channel": 6,                   # channel; mapping handles freq
+            "ip_base": "192.168.1.",
+            "self_ip_ending": self._get_ip_ending_from_id(),
+        }
         self._original_connection = self._get_active_connection()
+        self._threads = []
+        self.mode_used = None   # 'mesh' | 'ibss' | 'adhoc'
 
-    def _get_active_connection(self) -> Optional[str]:
+        # IP guard is kept but disabled by default (it can fight normal transitions)
+        self._ip_guard_running = False
+        self._ip_guard_thread = None
+
+    # ----- helpers -----
+    def _get_ip_ending_from_id(self):
         try:
-            res = subprocess.check_output(
-                ["nmcli", "-t", "-f", "NAME,DEVICE", "con", "show", "--active"],
-                stderr=subprocess.DEVNULL, text=True
-            )
-            for line in res.strip().split("\n"):
-                if not line.strip():
-                    continue
-                name, dev = line.split(":")
-                if dev == self.iface:
+            return str(int(''.join(filter(str.isdigit, self._drone_id))))
+        except (ValueError, IndexError):
+            return str(abs(hash(self._drone_id)) % 254 + 1)
+
+    def _run_command(self, command):
+        logger.info(f"Running command: {' '.join(command)}")
+        try:
+            p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            _, stderr = p.communicate()
+            if p.returncode != 0:
+                err = stderr.decode(errors='ignore').strip()
+                if err:
+                    logger.error(f"Command failed: {err}")
+                return False
+            return True
+        except Exception as e:
+            logger.error(f"Exception running command: {e}")
+            return False
+
+    def _get_active_connection(self):
+        try:
+            result = subprocess.check_output(
+                ['nmcli', '-t', '-f', 'NAME,DEVICE', 'con', 'show', '--active'],
+                stderr=subprocess.DEVNULL
+            ).decode()
+            for line in result.strip().split('\n'):
+                if not line.strip(): continue
+                name, dev = line.split(':')
+                if dev == self.cfg["interface"]:
                     return name
         except Exception:
-            pass
+            return None
         return None
 
-    def _scan_once(self) -> List[Dict]:
-        """Return list of matching ad-hoc cells [{'bssid':..,'channel':..}] for our ESSID."""
+    # ----- radio bring-up variants -----
+    def _prep_iface_unmanaged(self, iface):
+        # Best-effort neutralize NM/supplicant and clear state; leave iface DOWN
+        self._run_command(['sudo', 'nmcli', 'dev', 'disconnect', iface])
+        self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'no'])
+        self._run_command(['sudo', 'killall', 'wpa_supplicant'])
+        # Leave any prior roles
+        self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'])
+        self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
+        self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
+
+    def setup_mesh(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"]); freq = str(ch_to_freq_mhz(ch))
+        logger.info("Configuring 802.11s mesh...")
+        self._prep_iface_unmanaged(iface)
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'mp']):
+            logger.error("Driver refused mesh point mode."); return False
+        if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
+            logger.error(f"Failed to bring {iface} up."); return False
+        subprocess.Popen(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'],
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'join', ssid, 'freq', freq]):
+            logger.error("Mesh join failed."); return False
+
+        # Try to disable power saving (best effort)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
+
         try:
-            out = subprocess.check_output(
-                ["sudo", "iwlist", self.iface, "scan"],
-                stderr=subprocess.DEVNULL, text=True, timeout=5
-            )
+            out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
+            if ('mesh' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
+                logger.error("Mesh link not as expected:\n%s", out); return False
         except Exception:
-            return []
-        cells = out.split("Cell ")
-        matches: List[Dict] = []
-        for blob in cells[1:]:
-            m_addr = re.search(r"Address:\s*([0-9A-Fa-f:]{17})", blob)
-            m_mode = re.search(r"Mode:\s*Ad-Hoc", blob)
-            m_ess = re.search(r'ESSID:"([^"]+)"', blob)
-            m_ch = re.search(r"Channel\s*:\s*(\d+)", blob)
-            if not m_ch:
-                m_ch = re.search(r"Frequency:\s*[\d\.]+\s*GHz\s*\(Channel\s*(\d+)\)", blob)
-            if not (m_addr and m_mode and m_ess and m_ch):
-                continue
-            if m_ess.group(1) != self.ssid:
-                continue
-            try:
-                matches.append({"bssid": m_addr.group(1).lower(), "channel": int(m_ch.group(1))})
-            except ValueError:
-                continue
-        return matches
+            pass
+        self.mode_used = 'mesh'; return True
 
-    def _scan_until(self, seconds: float) -> Optional[Dict]:
-        deadline = time.time() + seconds
-        run(["sudo", "ip", "link", "set", self.iface, "up"], ignore_rc=True)
-        while time.time() < deadline:
-            ms = self._scan_once()
-            if ms:
-                return ms[0]
-            time.sleep(SCAN_INTERVAL_S)
-        return None
+    def setup_ibss(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"]); freq = str(ch_to_freq_mhz(ch))
+        logger.info("Configuring IBSS (nl80211)...")
+        self._prep_iface_unmanaged(iface)
 
-    def bring_up(self) -> bool:
-        logger.info("Preparing interface for WEXT Ad-Hoc (scan-first): %s", self.iface)
-        # Neutralize managers & clear state
-        run(["sudo", "nmcli", "dev", "disconnect", self.iface], ignore_rc=True)
-        run(["sudo", "nmcli", "dev", "set", self.iface, "managed", "no"], ignore_rc=True)
-        run(["sudo", "systemctl", "stop", "iwd"], ignore_rc=True)  # iwd can hold iface
-        run(["sudo", "killall", "wpa_supplicant"], ignore_rc=True)
-        run(["sudo", "iw", "dev", self.iface, "ibss", "leave"], ignore_rc=True)
-        run(["sudo", "iw", "dev", self.iface, "mesh", "leave"], ignore_rc=True)
-        run(["sudo", "ip", "addr", "flush", "dev", self.iface], ignore_rc=True)
-        run(["sudo", "ip", "link", "set", self.iface, "down"], ignore_rc=True)
+        # Ensure we're in the correct iftype
+        self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'])
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'ibss'])
 
-        # Scan for existing cell (iface must be up for scan)
-        logger.info('Scanning up to %.1fs for existing ad-hoc cell ESSID="%s"...',
-                    FOUNDERS_SHORT_SCAN_S, self.ssid)
-        run(["sudo", "ip", "link", "set", self.iface, "up"], ignore_rc=True)
-        _ = run(["sudo", "ip", "link", "set", self.iface, "up"], ignore_rc=True)  # double-up helps on some drivers
-        found = self._scan_until(FOUNDERS_SHORT_SCAN_S)
-        if found:
-            use_channel = int(found["channel"])
-            logger.info("Found existing cell on channel %d; will join.", use_channel)
-        else:
-            use_channel = self.channel
-            logger.info("No existing cell; will create on channel %d.", use_channel)
+        if not self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up']):
+            logger.error(f"Failed to bring {iface} up."); return False
 
-        # Bring down again for iftype change + WEXT config
-        run(["sudo", "ip", "link", "set", self.iface, "down"], ignore_rc=True)
-        time.sleep(0.15)
-        run(["sudo", "iw", "dev", self.iface, "set", "type", "managed"], ignore_rc=True)
-        time.sleep(0.05)
+        # Prefer HT20 for widest compatibility; fixed-freq optional
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'ibss', 'join', ssid, freq, 'HT20']):
+            logger.error("IBSS join failed."); return False
 
-        # Configure via WEXT
-        if not run(["sudo", "iwconfig", self.iface, "mode", "ad-hoc"]):  # WEXT legacy
-            return False
-        if not run(["sudo", "iwconfig", self.iface, "essid", self.ssid]):
-            return False
-        if not run(["sudo", "iwconfig", self.iface, "channel", str(use_channel)]):
-            return False
-        if not run(["sudo", "ip", "link", "set", self.iface, "up"]):
-            return False
+        # Power save off (matches stable broadcaster)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
 
-        # Verify (not all drivers show cell/channel; don't fail hard on that)
         try:
-            out = subprocess.check_output(["iwconfig", self.iface], stderr=subprocess.DEVNULL, text=True)
-            ok_mode = ("Mode:Ad-Hoc" in out)
-            ok_ess = (f'ESSID:"{self.ssid}"' in out)
-            if not (ok_mode and ok_ess):
-                logger.error("WEXT state not as expected:\n%s", out.strip())
-                return False
-            cell = re.search(r"Cell\s*[:=]\s*([0-9A-Fa-f:]{17})", out)
-            ch = re.search(r"Channel\s*:(\d+)", out) or re.search(r"Frequency:.*\(Channel\s*(\d+)\)", out)
-            logger.info("Ad-Hoc up. %s %s",
-                        f"Cell={cell.group(1).lower()}" if cell else "Cell=unknown",
-                        f"Channel={ch.group(1)}" if ch else "Channel=unknown")
-        except subprocess.CalledProcessError:
-            logger.error("Cannot read iwconfig state.")
-            return False
-        return True
+            out = subprocess.check_output(['iw', 'dev', iface, 'link'], stderr=subprocess.DEVNULL).decode()
+            if ('IBSS' not in out) or (ssid not in out) or (f'freq: {freq}' not in out):
+                logger.error("IBSS link not as expected:\n%s", out); return False
+        except Exception:
+            pass
+        self.mode_used = 'ibss'; return True
 
-    def add_ip(self, ip_cidr: str) -> bool:
-        if not run(["sudo", "ip", "addr", "add", ip_cidr, "dev", self.iface]):
-            logger.error("Failed to assign IP %s to %s.", ip_cidr, self.iface)
-            return False
-        logger.info("Assigned IP %s to %s.", ip_cidr, self.iface)
-        return True
+    def setup_adhoc_wext(self):
+        iface  = self.cfg["interface"]; ssid = self.cfg["ssid"]
+        ch     = int(self.cfg["channel"])
+        logger.info("Configuring legacy ad-hoc (WEXT/iwconfig)...")
+        self._prep_iface_unmanaged(iface)
+        ok = True
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'mode', 'ad-hoc'])
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'essid', ssid])
+        ok &= self._run_command(['sudo', 'iwconfig', iface, 'channel', str(ch)])
+        ok &= self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
+        if not ok:
+            logger.error("WEXT ad-hoc bring-up failed."); return False
 
-    def teardown(self):
+        # Power save off (best effort)
+        self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'power_save', 'off'])
+        self._run_command(['sudo', 'iwconfig', iface, 'power', 'off'])
+
+        time.sleep(0.3)
+        try:
+            out = subprocess.check_output(['iwconfig', iface], stderr=subprocess.DEVNULL).decode()
+            if ('Mode:Ad-Hoc' not in out) or (f'ESSID:"{ssid}"' not in out):
+                logger.error("WEXT state not as expected:\n%s", out); return False
+        except Exception:
+            pass
+        self.mode_used = 'adhoc'; return True
+
+    def setup_radio(self, preference: str = 'auto') -> bool:
+        """Bring up the best available peer-to-peer mode; set self.mode_used."""
+        iface = self.cfg["interface"]
+        if preference == 'mesh':
+            if not mesh_supported():
+                logger.critical("Mesh requested but not supported by driver."); return False
+            return self.setup_mesh()
+        if preference == 'ibss':
+            if ibss_supported():
+                return self.setup_ibss()
+            logger.warning("IBSS (nl80211) not supported, falling back to legacy ad-hoc.")
+            return self.setup_adhoc_wext()
+        if preference == 'adhoc':
+            return self.setup_adhoc_wext()
+
+        # auto
+        if mesh_supported():
+            if self.setup_mesh(): return True
+        if ibss_supported():
+            if self.setup_ibss(): return True
+        return self.setup_adhoc_wext()
+
+    # ----- IP handling / teardown -----
+    def _assign_ip_address(self):
+        logger.info("Assigning IP address...")
+        ip_address = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}/24"
+        iface = self.cfg["interface"]
+        if not self._run_command(['sudo', 'ip', 'addr', 'add', ip_address, 'dev', iface]):
+            logger.error(f"Failed to assign IP {ip_address} to {iface}."); return False
+        logger.info(f"Assigned IP {ip_address} to {iface}."); return True
+
+    def _ip_guard(self):
+        """Disabled by default to avoid fighting normal transitions."""
+        iface = self.cfg["interface"]
+        own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
+        cidr = f"{own_ip}/24"
+        miss_count = 0
+        while self._ip_guard_running:
+            time.sleep(3)
+            try:
+                out = subprocess.check_output(['ip', '-br', 'addr', 'show', iface],
+                                              stderr=subprocess.DEVNULL).decode()
+                if own_ip not in out:
+                    miss_count += 1
+                    if miss_count >= 3:
+                        logger.warning("IP vanished from %s; re-adding %s", iface, cidr)
+                        self._run_command(['sudo', 'ip', 'addr', 'add', cidr, 'dev', iface])
+                        miss_count = 0
+                else:
+                    miss_count = 0
+            except Exception:
+                pass
+
+    def start_threads(self):
+        logger.info(f"Starting discovery threads on port {self._port}...")
+        self._running = True
+        t1 = threading.Thread(target=self._broadcast_presence, daemon=True)
+        t2 = threading.Thread(target=self._listen_for_peers, daemon=True)
+        self._threads.extend([t1, t2])
+        t1.start(); t2.start()
+        # IP guard intentionally not started by default
+
+    def stop_threads(self):
+        if not self._running: return
+        logger.info("Stopping discovery threads...")
+        self._running = False
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.sendto(b'stop', ('127.0.0.1', self._port))
+        except Exception:
+            pass
+        for t in self._threads: t.join(timeout=2.0)
+        self._threads.clear()
+        self._ip_guard_running = False
+        if self._ip_guard_thread: self._ip_guard_thread.join(timeout=1.0)
+        logger.info("Discovery threads stopped.")
+
+    def teardown_radio(self):
+        """Restore NIC to managed Wi-Fi and try to reconnect to the previous AP."""
         logger.info("Restoring original network state...")
-        run(["sudo", "ip", "addr", "flush", "dev", self.iface], ignore_rc=True)
-        run(["sudo", "ip", "link", "set", self.iface, "down"], ignore_rc=True)
-        if not run(["sudo", "iw", "dev", self.iface, "set", "type", "managed"], ignore_rc=True):
-            run(["sudo", "iwconfig", self.iface, "mode", "managed"], ignore_rc=True)
-        run(["sudo", "nmcli", "dev", "set", self.iface, "managed", "yes"], ignore_rc=True)
-        run(["nmcli", "radio", "wifi", "on"], ignore_rc=True)
-        run(["sudo", "ip", "link", "set", self.iface, "up"], ignore_rc=True)
+        iface = self.cfg["interface"]
+        # best-effort leave
+        if self.mode_used == 'mesh':
+            subprocess.Popen(['sudo', 'iw', 'dev', iface, 'mesh', 'leave'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        elif self.mode_used == 'ibss':
+            subprocess.Popen(['sudo', 'iw', 'dev', iface, 'ibss', 'leave'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        # common cleanup
+        self._run_command(['sudo', 'ip', 'addr', 'flush', 'dev', iface])
+        self._run_command(['sudo', 'ip', 'link', 'set', iface, 'down'])
+        if not self._run_command(['sudo', 'iw', 'dev', iface, 'set', 'type', 'managed']):
+            self._run_command(['sudo', 'iwconfig', iface, 'mode', 'managed'])
+        self._run_command(['sudo', 'nmcli', 'dev', 'set', iface, 'managed', 'yes'])
+        # do NOT restart NetworkManager mid-run; just bring it back up cleanly
+        self._run_command(['nmcli', 'radio', 'wifi', 'on'])
+        self._run_command(['sudo', 'ip', 'link', 'set', iface, 'up'])
         time.sleep(2)
         if self._original_connection:
-            logger.info("Attempting to reconnect to '%s'...", self._original_connection)
-            run(["nmcli", "con", "up", "id", self._original_connection], ignore_rc=True)
+            logger.info(f"Attempting to reconnect to '{self._original_connection}'...")
+            self._run_command(['nmcli', 'con', 'up', 'id', self._original_connection])
         else:
-            logger.info("No previous connection recorded.")
+            logger.warning("No known previous connection to restore.")
 
+    # ----- UDP discovery -----
+    def _broadcast_presence(self):
+        own_ip = f"{self.cfg['ip_base']}{self.cfg['self_ip_ending']}"
+        bcast_ip = str(ipaddress.IPv4Interface(f"{own_ip}/24").network.broadcast_address)
+        payload = {"id": self._drone_id, "ip": own_ip,
+                   "tcp_port": self._tcp_port, "udp_port": self._udp_port}
+        msg = json.dumps(payload).encode("utf-8")
 
-# ---------- Telemetry (always broadcast, RX+TX) ----------
-class Telemetry:
-    def __init__(self, iface: str, ip_cidr: str, drone_id: str,
-                 port: int = TELEMETRY_PORT, period_s: float = 1.0,
-                 on_rx=None):
-        self.iface = iface
-        self.drone_id = drone_id
-        self.period_s = period_s
-        self.port = port
-        self.on_rx = on_rx
-        self._running = False
-        ipif = ipaddress.IPv4Interface(ip_cidr)
-        self.ip = str(ipif.ip)
-        self.bcast = str(ipif.network.broadcast_address)
-        logger.info("Telemetry TX to %s:%d", self.bcast, self.port)
+        sock_subnet = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock_subnet.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
+        try:
+            while self._running:
+                try:
+                    sock_subnet.sendto(msg, (bcast_ip, self._port))
+                except OSError as e:
+                    logger.error(f"Subnet broadcast to {bcast_ip}:{self._port} failed: {e}")
+                time.sleep(1)
+        finally:
+            sock_subnet.close()
+
+    def _listen_for_peers(self):
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                sock.bind(('', self._port))
+            except socket.error as e:
+                logger.error(f"Socket bind failed on port {self._port}: {e}")
+                return
+            sock.settimeout(1.0)
+            while self._running:
+                try:
+                    data, addr = sock.recvfrom(1024)
+                    message = json.loads(data.decode())
+                    peer_id = message.get("id")
+                    if peer_id and message.get("ip") and peer_id != self._drone_id:
+                        if self.on_peer_discovered:
+                            self.on_peer_discovered(message)
+                except socket.timeout:
+                    continue
+                except Exception:
+                    if not self._running: break
+
+# ---------- Connection Manager ----------
+class ConnectionManager:
+    def __init__(self, drone_id, on_message_received_callback, tcp_port, udp_port,
+                 discovered_peers_ref, bind_iface: str | None = None):
+        self._drone_id = drone_id
+        self.on_message_received = on_message_received_callback
+        self._tcp_port = tcp_port
+        self._udp_port = udp_port
+        self._discovered_peers = discovered_peers_ref
+        self._running = True
+        self._threads = []
+        self._clients = {}
+        self._peers = {}
+        self.message_queue = deque()
+        self._lock = threading.Lock()
+        self._bind_iface = bind_iface  # retained for compatibility; not used to bind sockets
 
     def start(self):
+        logger.info(f"Starting connection manager for {self._drone_id}")
         self._running = True
         for target in (self._tcp_server_loop, self._udp_server_loop, self._process_message_queue):
             t = threading.Thread(target=target, daemon=True)
@@ -540,17 +657,6 @@ class DroneController:
     def _prune_peers_loop(self):
         while self._app_running:
             time.sleep(10)
-            n += 1
-            self.cm.broadcast_message({"protocol": "STATUS", "seq": n})
-
-    def _heartbeat(self):
-        while self._app_running:
-            time.sleep(self.hb_interval)
-            self.cm.broadcast_message({"protocol": "PING", "ts": time.time()})
-
-    def _prune_loop(self):
-        while self._app_running:
-            time.sleep(2)
             now = time.time()
             with self._discovered_lock:
                 peers_to_prune = [pid for pid, data in list(self.discovered_peers.items())
@@ -621,41 +727,21 @@ class DroneController:
             return
         logger.info(f"RECEIVED from {sender} via {proto}: {json.dumps(message)}")
 
-    def _on_msg(self, msg: Dict):
-        # messages coming from ConnectionManager (TCP/UDP)
-        sender = msg.get("drone_id", "Unknown")
-        if sender == self.drone_id:
-            return
-        # bump last-seen for heartbeats/drop logic
-        self._on_any_msg(msg)
-
-        proto = msg.get("protocol", "N/A")
-        if proto == "PING":
-            # reply directly over the chosen link
-            with self._lock:
-                peer = self._discovered.get(sender)
-            if peer:
-                self.cm.send_message(peer["info"], {"protocol": "PONG", "ts": time.time()})
-        else:
-            logger.info("RECV from %s via %s: %s", sender, proto, json.dumps(msg))
-
-    # ----- small util -----
-    @staticmethod
-    def _active_conn_name(iface: str) -> Optional[str]:
+    def _run_comm_sequence(self, peer_info: dict):
+        peer_id = peer_info['id']
         try:
-            res = subprocess.check_output(
-                ["nmcli", "-t", "-f", "NAME,DEVICE", "con", "show", "--active"],
-                stderr=subprocess.DEVNULL, text=True
-            )
-            for line in res.strip().split("\n"):
-                if not line.strip():
-                    continue
-                name, dev = line.split(":")
-                if dev == iface:
-                    return name
-        except Exception:
-            pass
-        return None
+            logger.info(f"[{peer_id}] === Starting UDP Test ===")
+            self.connection_manager.connect_to_peer(peer_info, protocol="UDP"); time.sleep(1)
+            for i in range(3):
+                self.connection_manager.send_message(peer_info, {"protocol": "UDP_TEST", "count": i + 1}); time.sleep(0.5)
+            self.connection_manager.disconnect_from_peer(peer_id); time.sleep(1)
+            logger.info(f"[{peer_id}] === Starting TCP Test ===")
+            self.connection_manager.connect_to_peer(peer_info, protocol="TCP"); time.sleep(1)
+            for i in range(3):
+                self.connection_manager.send_message(peer_info, {"protocol": "TCP_TEST", "count": i + 1}); time.sleep(0.5)
+            logger.info(f"[{peer_id}] === Initial communication test finished. TCP connection will be maintained. ===")
+        except Exception as e:
+            logger.error(f"Error in communication sequence with {peer_id}: {e}", exc_info=True)
 
 # ---------- Entry ----------
 def main():
@@ -683,14 +769,12 @@ def main():
     )
 
     try:
-        if ctrl.start():
-            while True:
-                time.sleep(1)
+        if controller.start():
+            while True: time.sleep(1)
     except KeyboardInterrupt:
         logger.info("Shutdown initiated by user.")
     finally:
-        ctrl.stop()
-
+        controller.stop()
 
 if __name__ == "__main__":
     main()
