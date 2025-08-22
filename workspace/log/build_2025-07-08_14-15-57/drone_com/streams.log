@@ -1,0 +1,46 @@
+[0.526s] Invoking command in '/home/fredrik/dva502_master_thesis/Workspace/src/drone_com': PYTHONPATH=/home/fredrik/dva502_master_thesis/Workspace/build/drone_com/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/drone_com build --build-base /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build install --record /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/install.log --single-version-externally-managed install_data
+[0.733s] running egg_info
+[0.734s] creating ../../build/drone_com/drone_com.egg-info
+[0.734s] writing ../../build/drone_com/drone_com.egg-info/PKG-INFO
+[0.735s] writing dependency_links to ../../build/drone_com/drone_com.egg-info/dependency_links.txt
+[0.735s] writing entry points to ../../build/drone_com/drone_com.egg-info/entry_points.txt
+[0.735s] writing requirements to ../../build/drone_com/drone_com.egg-info/requires.txt
+[0.736s] writing top-level names to ../../build/drone_com/drone_com.egg-info/top_level.txt
+[0.736s] writing manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+[0.738s] reading manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+[0.739s] writing manifest file '../../build/drone_com/drone_com.egg-info/SOURCES.txt'
+[0.739s] running build
+[0.739s] running build_py
+[0.739s] creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build
+[0.739s] creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib
+[0.739s] creating /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] copying drone_com/trust_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] copying drone_com/__init__.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] copying drone_com/discovery.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] copying drone_com/drone2drone.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] copying drone_com/connection_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com
+[0.740s] running install
+[0.740s] running install_lib
+[0.741s] creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.741s] copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/trust_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.742s] copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/__init__.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.742s] copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/discovery.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.742s] copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/drone2drone.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.742s] copying /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build/lib/drone_com/connection_manager.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com
+[0.742s] byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/trust_manager.py to trust_manager.cpython-310.pyc
+[0.743s] byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/__init__.py to __init__.cpython-310.pyc
+[0.743s] byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/discovery.py to discovery.cpython-310.pyc
+[0.744s] byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/drone2drone.py to drone2drone.cpython-310.pyc
+[0.744s] byte-compiling /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com/connection_manager.py to connection_manager.cpython-310.pyc
+[0.746s] running install_data
+[0.746s] creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index
+[0.746s] creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index
+[0.746s] creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index/packages
+[0.746s] copying resource/drone_com -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/ament_index/resource_index/packages
+[0.747s] copying package.xml -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/share/drone_com
+[0.747s] running install_egg_info
+[0.748s] Copying ../../build/drone_com/drone_com.egg-info to /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages/drone_com-0.0.0-py3.10.egg-info
+[0.749s] running install_scripts
+[0.768s] Installing drone2drone script to /home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/drone_com
+[0.768s] writing list of installed files to '/home/fredrik/dva502_master_thesis/Workspace/build/drone_com/install.log'
+[0.793s] Invoked command in '/home/fredrik/dva502_master_thesis/Workspace/src/drone_com' returned '0': PYTHONPATH=/home/fredrik/dva502_master_thesis/Workspace/build/drone_com/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/fredrik/dva502_master_thesis/Workspace/install/drone_com/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/drone_com build --build-base /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/build install --record /home/fredrik/dva502_master_thesis/Workspace/build/drone_com/install.log --single-version-externally-managed install_data

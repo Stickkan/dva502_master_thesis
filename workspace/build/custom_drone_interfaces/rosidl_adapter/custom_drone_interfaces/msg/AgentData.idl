@@ -1,0 +1,40 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/AgentData.msg
+// generated code does not contain a copyright notice
+
+
+module custom_drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "AgentData.msg" "\n"
+      "Represent one objects id, velocity and position meant for Traffic collision avoidance" "\n"
+      "ID")
+    struct AgentData {
+      uint32 agentid;
+
+      @verbatim (language="comment", text=
+        "Priority")
+      uint8 priority;
+
+      @verbatim (language="comment", text=
+        "Velocity component")
+      float vx;
+
+      float vy;
+
+      float vz;
+
+      @verbatim (language="comment", text=
+        "Position Component")
+      double lat;
+
+      double lon;
+
+      float alt;
+
+      @verbatim (language="comment", text=
+        "Time component")
+      uint64 time;
+    };
+  };
+};

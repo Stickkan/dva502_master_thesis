@@ -1,0 +1,15 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/Path3D.msg
+// generated code does not contain a copyright notice
+
+#include "custom_drone_interfaces/msg/Waypoint.idl"
+
+module custom_drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "an array of waypoints, defining a path that should be followed")
+    struct Path3D {
+      sequence<custom_drone_interfaces::msg::Waypoint> waypoints;
+    };
+  };
+};

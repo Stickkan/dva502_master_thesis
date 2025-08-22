@@ -1,0 +1,16 @@
+Discovery:
+-Sets up configuration for IBSS
+-Assigns IP adress
+-Broadcasts periodically
+-Searches for peers
+
+ConnectionManager:
+-Sets up and tears down TCP and UDP connections
+-Sets up and tears down listener and communication threads
+-Process and sends messages
+
+DroneController:
+-Handles logical flow of the program
+-Decides behaviour
+-Handle callbacks
+

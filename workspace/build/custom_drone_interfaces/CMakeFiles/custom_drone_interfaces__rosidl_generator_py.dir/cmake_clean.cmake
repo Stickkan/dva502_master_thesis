@@ -1,0 +1,43 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/action/_mission_executor_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/action/_mission_executor_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/action/_tracker_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/action/_tracker_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_agent_data_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_agent_data_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_agents_list_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_agents_list_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_command_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_command_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_feedback_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_feedback_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_goal_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_goal_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_result_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_mission_result_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_object_proximity_data_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_object_proximity_data_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_path3_d_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_path3_d_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_sensor_data_collection_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_sensor_data_collection_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_set_point_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_set_point_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_status_data_collection_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_status_data_collection_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_sub_waypoint_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_sub_waypoint_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_task_specification_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_task_specification_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_waypoint_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/msg/_waypoint_s.c.o.d"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/srv/_compute_path_s.c.o"
+  "CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/rosidl_generator_py/custom_drone_interfaces/srv/_compute_path_s.c.o.d"
+  "rosidl_generator_py/custom_drone_interfaces/libcustom_drone_interfaces__rosidl_generator_py.pdb"
+  "rosidl_generator_py/custom_drone_interfaces/libcustom_drone_interfaces__rosidl_generator_py.so"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang C)
+  include(CMakeFiles/custom_drone_interfaces__rosidl_generator_py.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

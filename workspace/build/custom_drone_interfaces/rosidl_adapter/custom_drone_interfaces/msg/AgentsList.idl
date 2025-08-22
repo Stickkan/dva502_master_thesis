@@ -1,0 +1,17 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/AgentsList.msg
+// generated code does not contain a copyright notice
+
+#include "custom_drone_interfaces/msg/AgentData.idl"
+
+module custom_drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "AgentList.msg" "\n"
+      "Contain a list of agents meant to avoid collision with these agents" "\n"
+      "Array of AgentData")
+    struct AgentsList {
+      sequence<custom_drone_interfaces::msg::AgentData> agents;
+    };
+  };
+};

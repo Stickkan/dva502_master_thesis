@@ -1,0 +1,21 @@
+running egg_info
+creating ../../build/drone_start/drone_start.egg-info
+writing ../../build/drone_start/drone_start.egg-info/PKG-INFO
+writing dependency_links to ../../build/drone_start/drone_start.egg-info/dependency_links.txt
+writing entry points to ../../build/drone_start/drone_start.egg-info/entry_points.txt
+writing requirements to ../../build/drone_start/drone_start.egg-info/requires.txt
+writing top-level names to ../../build/drone_start/drone_start.egg-info/top_level.txt
+writing manifest file '../../build/drone_start/drone_start.egg-info/SOURCES.txt'
+reading manifest file '../../build/drone_start/drone_start.egg-info/SOURCES.txt'
+writing manifest file '../../build/drone_start/drone_start.egg-info/SOURCES.txt'
+running build
+running install
+running install_data
+copying package.xml -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_start/share/drone_start
+creating /home/fredrik/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/launch
+copying launch/drone_wrapper.launch.py -> /home/fredrik/dva502_master_thesis/Workspace/install/drone_start/share/drone_start/launch
+running install_egg_info
+Copying ../../build/drone_start/drone_start.egg-info to /home/fredrik/dva502_master_thesis/Workspace/install/drone_start/lib/python3.10/site-packages/drone_start-0.0.0-py3.10.egg-info
+running install_scripts
+Installing mission_control script to /home/fredrik/dva502_master_thesis/Workspace/install/drone_start/bin
+writing list of installed files to '/home/fredrik/dva502_master_thesis/Workspace/build/drone_start/install.log'

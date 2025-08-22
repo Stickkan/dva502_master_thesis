@@ -1,0 +1,17 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from custom_drone_interfaces/msg/MissionCommand.msg
+// generated code does not contain a copyright notice
+
+
+module custom_drone_interfaces {
+  module msg {
+    @verbatim (language="comment", text=
+      "mission_executor/msg/missionCommand.msg" "\n"
+      "MISSION_ABORT 1" "\n"
+      "MISSION_SUSPEND 2" "\n"
+      "MISSION_RESUME 3")
+    struct MissionCommand {
+      uint16 command_flag;
+    };
+  };
+};
